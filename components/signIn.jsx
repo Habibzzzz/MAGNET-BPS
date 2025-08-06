@@ -477,12 +477,20 @@ export default function Login() {
                                 {isLogin ? 'Daftar Sebagai Peserta' : 'Masuk'}
                             </button>
                             {isLogin && (
-                                <button
-                                    className="mt-2 text-blue-600 font-semibold hover:text-blue-700 cursor-pointer"
-                                    onClick={() => router.push('/sign-upMentor')}
-                                >
-                                    Daftar Sebagai Pembimbing
-                                </button>
+                                <>
+                                    <button
+                                        className="mt-2 text-blue-600 font-semibold hover:text-blue-700 cursor-pointer"
+                                        onClick={() => router.push('/sign-upMentor')}
+                                    >
+                                        Daftar Sebagai Pembimbing
+                                    </button>
+                                    <button
+                                        className="mt-2 text-green-600 font-semibold hover:text-green-700 cursor-pointer"
+                                        onClick={() => router.push('/jadwalMagang')}
+                                    >
+                                        Lihat Jadwal & Kuota Magang
+                                    </button>
+                                </>
                             )}
                         </div>
                     </div>

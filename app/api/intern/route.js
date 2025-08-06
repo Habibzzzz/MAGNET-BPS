@@ -2,6 +2,7 @@ import Intern from "@/models/internInfo";
 import connectMongoDB from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 import User from "../../../models/User";
+import Pembimbing from "@/models/mentorInfo"; // <-- Tambahkan baris ini
 
 export async function GET(request) {
     try {
