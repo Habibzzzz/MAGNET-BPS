@@ -432,6 +432,7 @@ export default function Dashboard() {
                   Pengaturan Role
                 </button>
               )}
+
               <SignOutButton />
             </div>
           </div>

@@ -28,6 +28,11 @@ const InternCalendar = () => {
     date: null,
     interns: [],
   });
+  const [previousDayDetail, setPreviousDayDetail] = useState({
+    isOpen: false,
+    date: null,
+    interns: [],
+  });
   const [canViewDetail, setCanViewDetail] = useState(false);
 
   useEffect(() => {
@@ -126,6 +131,12 @@ const InternCalendar = () => {
 
   const handleInternClick = (intern) => {
     if (!canViewDetail) return;
+    // Simpan data modal detail harian sebelum membuka modal detail peserta
+    setPreviousDayDetail({
+      isOpen: true,
+      date: dayDetail.date,
+      interns: dayDetail.interns,
+    });
     setSelectedIntern(intern);
     setIsModalOpen(true);
   };
@@ -153,6 +164,13 @@ const InternCalendar = () => {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const getQuotaColor = (count) => {
+    if (count >= 10) return "text-red-600";
+    if (count >= 7) return "text-orange-600";
+    if (count >= 4) return "text-yellow-600";
+    return "text-green-600";
   };
 
   const statusPriority = {
@@ -208,33 +226,37 @@ const InternCalendar = () => {
                     </span>
                   </div>
                 </div>
-                <button onClick={closeDayDetailModal} className="p-2 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
-                  <X className="w-6 h-6" />
-                </button>
+                                 <button 
+                   onClick={() => {
+                     closeDayDetailModal();
+                     setPreviousDayDetail({ isOpen: false, date: null, interns: [] });
+                   }} 
+                   className="p-2 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors"
+                 >
+                   <X className="w-6 h-6" />
+                 </button>
               </div>
 
-              {/* Konten (Daftar Nama) */}
-              <div className="p-6 overflow-y-auto">
-                <ul className="space-y-3">
-                  {dayDetail.interns.map(intern => (
-                    <li key={intern._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-gray-800">{intern.nama}</span>
-                      {canViewDetail && (
-                        <button
-                          onClick={() => {
-                            closeDayDetailModal();
-                            handleInternClick(intern);
-                          }}
-                          className="text-xs cursor-pointer text-blue-600 hover:underline font-semibold"
-                        >
-                          Lihat Detail
-                        </button>
-                      )}
-
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                             {/* Konten (Daftar Nama) */}
+               <div className="p-6 overflow-y-auto">
+                 <ul className="space-y-3">
+                   {dayDetail.interns.map(intern => (
+                     <li key={intern._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                       <span className="font-medium text-gray-800">{intern.nama}</span>
+                                               {canViewDetail && (
+                          <button
+                            onClick={() => {
+                              handleInternClick(intern);
+                            }}
+                            className="text-sm cursor-pointer text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-1 rounded-md transition-colors font-medium"
+                          >
+                            Lihat Detail
+                          </button>
+                        )}
+                     </li>
+                   ))}
+                 </ul>
+               </div>
             </div>
           </div>
         )}
@@ -326,34 +348,24 @@ const InternCalendar = () => {
                           {date.getDate()}
                         </div>
                         {internsForDate.length > 0 && (
-                          <div className="space-y-1">
-                            {[...internsForDate]
-                              .sort((a, b) => (statusPriority[a.status] || 99) - (statusPriority[b.status] || 99))
-                              .slice(0, 3)
-                              .map(intern => (
-                                <button
-                                  key={intern._id}
-                                  onClick={() => handleInternClick(intern)}
-                                  className={`w-full cursor-pointer text-left p-1 text-xs ${getStatusColor(intern.status)} rounded truncate transition-colors`}
-                                  title={intern.nama}
-                                >
-                                  {intern.nama}
-                                </button>
-                              ))}
+                          <div className="text-center">
+                            <span className={`text-xs font-semibold ${getQuotaColor(internsForDate.length)}`}>
+                              {internsForDate.length} peserta
+                            </span>
                           </div>
                         )}
                       </div>
 
                       {/* Tombol Detail di bawah */}
                       <div className="mt-2">
-                        <button
-                          onClick={() => openDayDetailModal(date, internsForDate)}
-                          className="w-full cursor-pointer text-center text-xs font-medium text-blue-600 hover:underline"
-                        >
-                          {internsForDate.length > 3
-                            ? `+${internsForDate.length - 3} lainnya`
-                            : 'Detail'}
-                        </button>
+                        {internsForDate.length > 0 && (
+                          <button
+                            onClick={() => openDayDetailModal(date, internsForDate)}
+                            className="w-full cursor-pointer text-center text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
+                          >
+                            Lihat Detail
+                          </button>
+                        )}
                       </div>
                     </>
                   )}
@@ -367,12 +379,30 @@ const InternCalendar = () => {
         {isModalOpen && selectedIntern && (
           <div className="fixed inset-0 bg-black/75 bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] flex flex-col">
-              <div className="p-6 border-b flex justify-between items-center">
-                <h3 className="text-2xl font-bold text-gray-900">Detail Magang</h3>
-                <button onClick={closeModal} className="p-2 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
+                             <div className="p-6 border-b flex justify-between items-center">
+                                   <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => {
+                        closeModal();
+                        setDayDetail(previousDayDetail);
+                      }}
+                      className="flex items-center gap-2 px-3 py-1 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Kembali 
+                    </button>
+                  </div>
+                 <h3 className="text-2xl font-bold text-gray-900">Detail Magang</h3>
+                                   <button 
+                    onClick={() => {
+                      closeModal();
+                      setDayDetail({ isOpen: false, date: null, interns: [] });
+                    }} 
+                    className="p-2 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+               </div>
               <div className="p-6 overflow-y-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
@@ -409,17 +439,17 @@ const InternCalendar = () => {
                         </div>
                       </div>
                     ))}
-                    {selectedIntern.status && (
-                      <div className="flex items-start space-x-3">
-                        <Clock className="w-5 h-5 text-gray-500 mt-1" />
-                        <div>
-                          <p className="text-sm text-gray-500">Status</p>
-                          <p><span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedIntern.status)}`}>
-                            {selectedIntern.status}
-                          </span></p>
-                        </div>
-                      </div>
-                    )}
+                                         {selectedIntern.status && (
+                       <div className="flex items-start space-x-3">
+                         <Clock className="w-5 h-5 text-gray-500 mt-1" />
+                         <div>
+                           <p className="text-sm text-gray-500">Status</p>
+                           <p><span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedIntern.status)}`}>
+                             {selectedIntern.status.charAt(0).toUpperCase() + selectedIntern.status.slice(1)}
+                           </span></p>
+                         </div>
+                       </div>
+                     )}
                   </div>
                 </div>
               </div>
