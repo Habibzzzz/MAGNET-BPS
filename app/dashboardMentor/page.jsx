@@ -113,12 +113,20 @@ export default function DashboardMentor() {
                     <p className="text-gray-600 mb-6">
                         Halaman ini hanya dapat diakses oleh akun Pembimbing.
                     </p>
-                    <button
-                        onClick={() => auth.signOut().then(() => router.push('/'))}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
-                    >
-                        Login dengan Akun Lain
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <button
+                            onClick={() => router.push('/')}
+                            className="bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition-all duration-200 shadow-md cursor-pointer"
+                        >
+                            Sign In
+                        </button>
+                        <button
+                            onClick={() => auth.signOut().then(() => router.push('/'))}
+                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
+                        >
+                            Login dengan Akun Lain
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -132,7 +140,14 @@ export default function DashboardMentor() {
                     <h1 className="text-3xl font-bold text-gray-800">
                         Dashboard <span className="text-blue-600">MAGNET</span>
                     </h1>
-                    <SignOutButton />
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => router.push("/")}
+                            className="bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition-all duration-200 shadow-md cursor-pointer">
+                            Sign In
+                        </button>
+                        <SignOutButton />
+                    </div>
                 </div>
 
                 {userMentorData ? (
