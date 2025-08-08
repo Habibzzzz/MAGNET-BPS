@@ -545,6 +545,13 @@ export default function Dashboard() {
                   description="Verifikasi Peserta yang mendapatkan sertifikat"
                   color="orange"
                 />
+                <MenuCard
+                  onClick={() => handleMenuClick("/monitoring-laporan")}
+                  icon="📋"
+                  title="Monitoring Laporan"
+                  description="Pantau laporan peserta magang"
+                  color="blue"
+                />
               </div>
             </div>
 
@@ -700,10 +707,10 @@ export default function Dashboard() {
                 <h2 className="text-xl font-bold text-gray-800 mb-6">Menu Utama</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <MenuCard
-                    onClick={() => handleMenuClick("/dashboard")}
-                    icon="🗓📖"
-                    title="Pengumpulan Laporan"
-                    description="Submit Laporan Magang Kamu di sini"
+                    onClick={() => handleMenuClick("/laporan")}
+                    icon="�"
+                    title="Laporan Magang"
+                    description="Kelola laporan kegiatan harian dan project akhir"
                     color="blue"
                   />
                   <MenuCard
