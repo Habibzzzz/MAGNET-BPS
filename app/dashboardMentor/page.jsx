@@ -95,6 +95,11 @@ export default function DashboardMentor() {
     }, [user, mentors, interns, isPembimbing]);
 
 
+    // Filter anak bimbingan berdasarkan pembimbing
+    const myInterns = interns.filter(intern => 
+        intern.pembimbing?._id === currentMentor._id
+    );
+
     // Tampilan Loading Awal
     if (loading) {
         return (
