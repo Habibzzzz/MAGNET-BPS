@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import NavbarGeneral from '@/components/NavbarGeneral';
-import { FaArrowLeft, FaFilePdf, FaFilePowerpoint, FaDownload, FaUser, FaCalendarAlt, FaBuilding, FaEye, FaHeart, FaComment } from 'react-icons/fa';
+import { FaArrowLeft, FaFilePdf, FaFilePowerpoint, FaDownload, FaUser, FaCalendarAlt, FaBuilding, FaEye, FaHeart, FaComment, FaFileAlt, FaShare } from 'react-icons/fa';
 
 const DetailLaporanPage = () => {
   const { user, userRole } = useAuth();
@@ -96,10 +96,11 @@ const DetailLaporanPage = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+          <p className="text-gray-600 text-lg font-medium">Memuat data...</p>
+          <p className="text-gray-500 text-sm mt-2">Mohon tunggu sebentar</p>
         </div>
       </div>
     );
@@ -107,10 +108,11 @@ const DetailLaporanPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Memuat detail laporan...</p>
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+          <p className="text-gray-600 text-lg font-medium">Memuat detail laporan...</p>
+          <p className="text-gray-500 text-sm mt-2">Mohon tunggu sebentar</p>
         </div>
       </div>
     );
@@ -118,13 +120,16 @@ const DetailLaporanPage = () => {
 
   if (!laporan) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-md text-center max-w-md mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-xl border border-white/30 text-center max-w-md mx-auto">
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <FaFileAlt className="w-10 h-10 text-red-500" />
+          </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Laporan tidak ditemukan</h2>
           <p className="text-gray-600 mb-6">Detail laporan yang Anda cari tidak tersedia atau telah dihapus.</p>
           <button
             onClick={() => router.push('/monitoring-laporan')}
-            className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition"
+            className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg"
           >
             Kembali ke Daftar Laporan
           </button>
@@ -134,201 +139,237 @@ const DetailLaporanPage = () => {
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <NavbarGeneral 
         title="Detail Laporan" 
         subTitle="Informasi lengkap laporan" 
       />
       
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          {/* Back Button */}
-          <div className="mb-6">
-            <button
-              onClick={() => router.push('/monitoring-laporan')}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition"
-            >
-              <FaArrowLeft /> Kembali ke Daftar Laporan
-            </button>
-          </div>
+             <div className="md:max-w-7xl mx-auto p-2 md:p-4">
+         
+         {/* Back Button */}
+         <div className="mb-6">
+          <button
+            onClick={() => router.push('/monitoring-laporan')}
+            className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-white/80 rounded-xl transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+          >
+            <FaArrowLeft className="w-5 h-5" />
+            <span>Kembali ke Daftar Laporan</span>
+          </button>
+        </div>
 
-          {/* Laporan Card */}
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            {/* Header */}
-            <div className="p-6 border-b">
-              <div className="flex items-center gap-3 mb-4">
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  laporan.jenis === 'kegiatan_harian' 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-purple-100 text-purple-800'
-                }`}>
-                  {laporan.jenis === 'kegiatan_harian' ? 'Kegiatan Harian' : 'Project Akhir'}
-                </span>
-                <span className="text-sm text-gray-500">
-                  Disubmit pada {formatDate(laporan.createdAt)}
-                </span>
-              </div>
-              
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">
-                {laporan.judul}
-              </h1>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <FaUser className="text-gray-400" />
-                  <span>{laporan.nama}</span>
-                </div>
-                
-                <div className="flex items-center gap-2 text-gray-600">
-                  <FaBuilding className="text-gray-400" />
-                  <span>{laporan.divisi}</span>
-                </div>
-                
-                <div className="flex items-center gap-2 text-gray-600">
-                  <FaCalendarAlt className="text-gray-400" />
-                  <span>{formatDate(laporan.tanggal)}</span>
-                </div>
-              </div>
-            </div>
+        {/* Laporan Card */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-white/30 overflow-hidden">
+                     {/* Header */}
+           <div className="p-3 md:p-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+             <div className="flex items-center gap-3 mb-4">
+               <span className={`px-3 py-1.5 rounded-full text-sm font-semibold ${
+                 laporan.jenis === 'kegiatan_harian' 
+                   ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200' 
+                   : 'bg-gradient-to-r from-purple-100 to-violet-100 text-purple-800 border border-purple-200'
+               }`}>
+                 {laporan.jenis === 'kegiatan_harian' ? 'Kegiatan Harian' : 'Project Akhir'}
+               </span>
+               <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-full shadow-sm">
+                 {formatDate(laporan.createdAt)}
+               </span>
+             </div>
+             
+             <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+               {laporan.judul}
+             </h1>
+             
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+               <div className="flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg">
+                 <FaUser className="text-blue-500 w-4 h-4" />
+                 <div>
+                   <p className="text-xs text-gray-600">Peserta</p>
+                   <p className="font-semibold text-gray-900 text-sm">{laporan.nama}</p>
+                 </div>
+               </div>
+               
+               <div className="flex items-center gap-2 bg-green-50 px-3 py-2 rounded-lg">
+                 <FaBuilding className="text-green-500 w-4 h-4" />
+                 <div>
+                   <p className="text-xs text-gray-600">Divisi</p>
+                   <p className="font-semibold text-gray-900 text-sm">{laporan.divisi}</p>
+                 </div>
+               </div>
+               
+               <div className="flex items-center gap-2 bg-purple-50 px-3 py-2 rounded-lg">
+                 <FaCalendarAlt className="text-purple-500 w-4 h-4" />
+                 <div>
+                   <p className="text-xs text-gray-600">Tanggal</p>
+                   <p className="font-semibold text-gray-900 text-sm">{formatDate(laporan.tanggal)}</p>
+                 </div>
+               </div>
+             </div>
+           </div>
 
-            {/* Content */}
-            <div className="p-6 border-b">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Deskripsi
-              </h2>
-              <div className="prose max-w-none">
-                <p className="text-gray-700 whitespace-pre-line">{laporan.deskripsi}</p>
-              </div>
-            </div>
+                     {/* Content */}
+           <div className="p-3 md:p-5 border-b border-gray-200">
+             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-3">
+               <FaFileAlt className="w-5 h-5 text-blue-600" />
+               Deskripsi Laporan
+             </h2>
+             <div className="prose max-w-none">
+               <p className="text-gray-700 whitespace-pre-line leading-relaxed text-base">{laporan.deskripsi}</p>
+             </div>
+           </div>
 
-            {/* Files */}
-            <div className="p-6 border-b">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Dokumen Terlampir
-              </h2>
-              
-              {!laporan.filePdf && !laporan.filePpt ? (
-                <p className="text-gray-500">Tidak ada dokumen terlampir</p>
-              ) : (
-                <div className="flex flex-wrap gap-4">
+                     {/* Files */}
+           <div className="p-3 md:p-5 border-b border-gray-200">
+             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-3">
+               <FaDownload className="w-5 h-5 text-green-600" />
+               Dokumen Terlampir
+             </h2>
+             
+             {!laporan.filePdf && !laporan.filePpt ? (
+               <div className="text-center py-8">
+                 <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                   <FaFileAlt className="w-6 h-6 text-gray-400" />
+                 </div>
+                 <p className="text-gray-500 text-sm">Tidak ada dokumen terlampir</p>
+               </div>
+             ) : (
+                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {laporan.filePdf && (
-                    <div className="bg-gray-50 rounded-lg p-4 flex items-center gap-3">
-                      <FaFilePdf className="text-red-500 text-2xl" />
-                      <div>
-                        <p className="font-medium text-gray-900">{laporan.judul}.pdf</p>
+                    <div className="flex items-center gap-2 p-2">
+                      <div className="w-8 h-8 bg-red-500 rounded-md flex items-center justify-center">
+                        <FaFilePdf className="text-white w-4 h-4" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900 text-xs">{laporan.judul}.pdf</p>
                         <button
                           onClick={() => handleDownload(laporan.filePdf, `${laporan.judul}.pdf`)}
-                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm mt-1"
+                          className="flex items-center gap-1 text-red-600 hover:text-red-800 text-xs mt-0.5 font-medium"
                         >
-                          <FaDownload size={14} /> Download
+                          <FaDownload size={10} /> Download PDF
                         </button>
                       </div>
                     </div>
                   )}
                   
                   {laporan.filePpt && (
-                    <div className="bg-gray-50 rounded-lg p-4 flex items-center gap-3">
-                      <FaFilePowerpoint className="text-orange-500 text-2xl" />
-                      <div>
-                        <p className="font-medium text-gray-900">{laporan.judul}.pptx</p>
+                    <div className="flex items-center gap-2 p-2">
+                      <div className="w-8 h-8 bg-orange-500 rounded-md flex items-center justify-center">
+                        <FaFilePowerpoint className="text-white w-4 h-4" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900 text-xs">{laporan.judul}.pptx</p>
                         <button
                           onClick={() => handleDownload(laporan.filePpt, `${laporan.judul}.pptx`)}
-                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm mt-1"
+                          className="flex items-center gap-1 text-orange-600 hover:text-orange-800 text-xs mt-0.5 font-medium"
                         >
-                          <FaDownload size={14} /> Download
+                          <FaDownload size={10} /> Download PPT
                         </button>
                       </div>
                     </div>
                   )}
                 </div>
-              )}
-            </div>
+             )}
+           </div>
 
-            {/* Stats */}
-            <div className="p-6 flex items-center justify-between text-sm text-gray-500 border-b">
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-1">
-                  <FaEye />
-                  <span>{laporan.views || 0} kali dilihat</span>
-                </div>
-                
-                <div className="flex items-center gap-1">
-                  <FaHeart className="text-red-500" />
-                  <span>{laporan.likes?.length || 0} suka</span>
-                </div>
-                
-                <div className="flex items-center gap-1">
-                  <FaComment className="text-blue-500" />
-                  <span>{laporan.comments?.length || 0} komentar</span>
-                </div>
-              </div>
-            </div>
+                     {/* Stats */}
+           <div className="p-3 md:p-5 flex items-center justify-between text-sm text-gray-500 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+             <div className="flex items-center gap-6">
+               <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg shadow-sm">
+                 <FaEye className="text-blue-500 w-4 h-4" />
+                 <span className="font-medium text-xs">{laporan.views || 0} kali dilihat</span>
+               </div>
+               
+               <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg shadow-sm">
+                 <FaHeart className="text-red-500 w-4 h-4" />
+                 <span className="font-medium text-xs">{laporan.likes?.length || 0} suka</span>
+               </div>
+               
+               <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg shadow-sm">
+                 <FaComment className="text-blue-500 w-4 h-4" />
+                 <span className="font-medium text-xs">{laporan.comments?.length || 0} komentar</span>
+               </div>
+             </div>
+           </div>
 
-            {/* Comments */}
-            <div className="p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Komentar dan Feedback
-              </h2>
-              
-              {laporan.comments && laporan.comments.length > 0 ? (
-                <div className="space-y-4 mb-6">
-                  {laporan.comments.map((comment, index) => (
-                    <div key={index} className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex justify-between mb-2">
-                        <div className="font-medium flex items-center gap-2">
-                          <span>{comment.nama}</span>
-                          {comment.role && (
-                            <span className={`text-xs px-2 py-0.5 rounded ${
-                              comment.role === 'admin' 
-                                ? 'bg-red-100 text-red-800' 
-                                : comment.role === 'pembimbing'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-gray-100 text-gray-800'
-                            }`}>
-                              {comment.role === 'admin' ? 'Admin' : 
-                               comment.role === 'pembimbing' ? 'Pembimbing' : 'Peserta Magang'}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          {formatDate(comment.tanggal)}
-                        </span>
-                      </div>
-                      <p className="text-gray-700">{comment.comment}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 mb-6">Belum ada komentar</p>
-              )}
-              
-              {/* Comment Form */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-medium text-gray-900 mb-2">Tambahkan Komentar</h3>
-                <div className="flex flex-col gap-3">
-                  <textarea
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    rows="3"
-                    placeholder="Berikan komentar atau feedback untuk laporan ini..."
-                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  ></textarea>
-                  <button
-                    onClick={handleComment}
-                    disabled={!commentText.trim()}
-                    className={`self-end px-4 py-2 rounded-lg ${
-                      commentText.trim() 
-                        ? 'bg-blue-500 text-white hover:bg-blue-600' 
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    } transition`}
-                  >
-                    Kirim Komentar
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+                     {/* Comments */}
+           <div className="p-3 md:p-5">
+             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-3">
+               <FaComment className="w-5 h-5 text-blue-600" />
+               Komentar dan Feedback
+             </h2>
+             
+             {laporan.comments && laporan.comments.length > 0 ? (
+               <div className="space-y-4 mb-6">
+                 {laporan.comments.map((comment, index) => (
+                   <div key={index} className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
+                     <div className="flex justify-between items-start mb-3">
+                       <div className="flex items-center gap-2">
+                         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                           <FaUser className="w-4 h-4 text-white" />
+                         </div>
+                         <div>
+                           <div className="font-semibold text-gray-900 text-sm">{comment.nama}</div>
+                           {comment.role && (
+                             <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                               comment.role === 'admin' 
+                                 ? 'bg-red-100 text-red-800' 
+                                 : comment.role === 'pembimbing'
+                                   ? 'bg-blue-100 text-blue-800'
+                                   : 'bg-gray-100 text-gray-800'
+                             }`}>
+                               {comment.role === 'admin' ? 'Admin' : 
+                                comment.role === 'pembimbing' ? 'Pembimbing' : 'Peserta Magang'}
+                             </span>
+                           )}
+                         </div>
+                       </div>
+                       <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-full">
+                         {formatDate(comment.tanggal)}
+                       </span>
+                     </div>
+                     <p className="text-gray-700 leading-relaxed text-sm">{comment.comment}</p>
+                   </div>
+                 ))}
+               </div>
+             ) : (
+               <div className="text-center py-8 mb-6">
+                 <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                   <FaComment className="w-6 h-6 text-gray-400" />
+                 </div>
+                 <p className="text-gray-500 text-sm">Belum ada komentar</p>
+                 <p className="text-gray-400 text-xs mt-1">Jadilah yang pertama memberikan feedback</p>
+               </div>
+             )}
+             
+             {/* Comment Form */}
+             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+               <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2 text-sm">
+                 <FaComment className="w-4 h-4 text-blue-600" />
+                 Tambahkan Komentar
+               </h3>
+               <div className="space-y-3">
+                 <textarea
+                   value={commentText}
+                   onChange={(e) => setCommentText(e.target.value)}
+                   rows="3"
+                   placeholder="Berikan komentar atau feedback untuk laporan ini..."
+                   className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+                 ></textarea>
+                 <div className="flex justify-end">
+                   <button
+                     onClick={handleComment}
+                     disabled={!commentText.trim()}
+                     className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
+                       commentText.trim() 
+                         ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 shadow-sm hover:shadow-md' 
+                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                     }`}
+                   >
+                     Kirim Komentar
+                   </button>
+                 </div>
+               </div>
+             </div>
+           </div>
         </div>
       </div>
     </div>

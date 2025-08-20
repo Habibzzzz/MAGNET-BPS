@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import NavbarGeneral from '@/components/NavbarGeneral';
-import { FaPlus, FaFileAlt, FaFilePdf, FaFilePowerpoint, FaEye, FaHeart, FaComment, FaEdit, FaTrash, FaDownload } from 'react-icons/fa';
+import { FaPlus, FaFileAlt, FaFilePdf, FaFilePowerpoint, FaEye, FaHeart, FaComment, FaEdit, FaTrash, FaDownload, FaUser, FaCalendarAlt, FaBuilding, FaFilter } from 'react-icons/fa';
 
 const LaporanPage = () => {
   const { user, userRole } = useAuth();
@@ -246,117 +246,172 @@ const LaporanPage = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+          <p className="text-gray-600 text-lg font-medium">Memuat data...</p>
+          <p className="text-gray-500 text-sm mt-2">Mohon tunggu sebentar</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <NavbarGeneral 
         title="Laporan Magang" 
         subTitle="Kelola laporan kegiatan harian dan project akhir Anda" 
       />
       
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="md:max-w-7xl mx-auto p-2 md:p-4">
+        {/* Statistics Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-lg border border-white/20">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                <FaFileAlt className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Laporan</p>
+                <p className="text-2xl font-bold text-blue-600">{laporan.length}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-lg border border-white/20">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                <FaFileAlt className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Laporan Harian</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {laporan.filter(item => item.jenis === 'kegiatan_harian').length}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-lg border border-white/20">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                <FaFileAlt className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Project Akhir</p>
+                <div>
+                  <p className="text-2xl font-bold text-purple-600">
+                    {laporan.filter(item => item.jenis === 'project_akhir').length}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          {/* Filter & Add Button */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-            <div className="flex gap-2">
+        {/* Filter & Add Button */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-white/30 p-3 md:p-5 mb-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Filter Jenis */}
+            <div className="flex flex-wrap gap-3">
+              <div className="flex items-center gap-2 text-gray-600 font-medium text-sm">
+                <FaFilter className="w-4 h-4" />
+                <span>Filter:</span>
+              </div>
               <button
                 onClick={() => setFilter('all')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
+                className={`px-4 py-2 rounded-xl transition-all duration-200 font-medium ${
                   filter === 'all' 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
                 }`}
               >
                 Semua Laporan
               </button>
               <button
                 onClick={() => setFilter('kegiatan_harian')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
+                className={`px-4 py-2 rounded-xl transition-all duration-200 font-medium ${
                   filter === 'kegiatan_harian' 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
                 }`}
               >
                 Kegiatan Harian
               </button>
               <button
                 onClick={() => setFilter('project_akhir')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
+                className={`px-4 py-2 rounded-xl transition-all duration-200 font-medium ${
                   filter === 'project_akhir' 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                    ? 'bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-lg' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
                 }`}
               >
                 Project Akhir
               </button>
             </div>
             
+            {/* Add Button */}
             <button
               onClick={() => {
                 resetForm();
                 setShowModal(true);
               }}
-              className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
             >
-              <FaPlus /> Tambah Laporan
+              <FaPlus className="w-4 h-4" />
+              Tambah Laporan
             </button>
           </div>
-
-          {/* Laporan Grid */}
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Memuat laporan...</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {laporan.map((item) => (
-                <LaporanCard
-                  key={item._id}
-                  laporan={item}
-                  currentUser={user}
-                  onLike={handleLike}
-                  onComment={handleComment}
-                  onEdit={openEditModal}
-                  onDelete={handleDelete}
-                />
-              ))}
-              
-              {laporan.length === 0 && (
-                <div className="col-span-full text-center py-12">
-                  <FaFileAlt className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Belum ada laporan</h3>
-                  <p className="text-gray-600">Mulai buat laporan pertama Anda!</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Modal Form */}
-          {showModal && (
-            <LaporanModal
-              formData={formData}
-              setFormData={setFormData}
-              selectedLaporan={selectedLaporan}
-              uploadProgress={uploadProgress}
-              onSubmit={handleSubmit}
-              onClose={() => {
-                setShowModal(false);
-                resetForm();
-              }}
-              onFileChange={handleFileChange}
-            />
-          )}
         </div>
+
+        {/* Laporan Grid */}
+        {loading ? (
+          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-white/30 p-3 md:p-5 text-center">
+            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+            <p className="text-gray-600 text-lg font-medium">Memuat laporan...</p>
+            <p className="text-gray-500 text-sm mt-2">Mohon tunggu sebentar</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {laporan.map((item) => (
+              <LaporanCard
+                key={item._id}
+                laporan={item}
+                currentUser={user}
+                onLike={handleLike}
+                onComment={handleComment}
+                onEdit={openEditModal}
+                onDelete={handleDelete}
+              />
+            ))}
+            
+            {laporan.length === 0 && (
+              <div className="col-span-full bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-white/30 p-3 md:p-5 text-center">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <FaFileAlt className="w-10 h-10 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Belum ada laporan</h3>
+                <p className="text-gray-600 text-sm">Mulai buat laporan pertama Anda!</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Modal Form */}
+        {showModal && (
+          <LaporanModal
+            formData={formData}
+            setFormData={setFormData}
+            selectedLaporan={selectedLaporan}
+            uploadProgress={uploadProgress}
+            onSubmit={handleSubmit}
+            onClose={() => {
+              setShowModal(false);
+              resetForm();
+            }}
+            onFileChange={handleFileChange}
+          />
+        )}
       </div>
     </div>
   );
@@ -386,40 +441,40 @@ const LaporanCard = ({ laporan, currentUser, onLike, onComment, onEdit, onDelete
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+    <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/30 p-4 md:p-6 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
-        <div>
+        <div className="flex-1">
           <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
             laporan.jenis === 'kegiatan_harian' 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-purple-100 text-purple-800'
+              ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200' 
+              : 'bg-gradient-to-r from-purple-100 to-violet-100 text-purple-800 border border-purple-200'
           }`}>
             {laporan.jenis === 'kegiatan_harian' ? 'Kegiatan Harian' : 'Project Akhir'}
           </span>
-          <h3 className="text-lg font-semibold text-gray-900 mt-2">{laporan.judul}</h3>
+          <h3 className="text-lg font-bold text-gray-900 mt-3 mb-2 break-words">{laporan.judul}</h3>
         </div>
         
         {isOwner && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 ml-4">
             <button
               onClick={() => onEdit(laporan)}
-              className="text-blue-500 hover:text-blue-700"
+              className="text-blue-500 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-lg transition-colors"
             >
-              <FaEdit />
+              <FaEdit className="w-4 h-4" />
             </button>
             <button
               onClick={() => onDelete(laporan._id)}
-              className="text-red-500 hover:text-red-700"
+              className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
             >
-              <FaTrash />
+              <FaTrash className="w-4 h-4" />
             </button>
           </div>
         )}
       </div>
 
       {/* Content */}
-      <p className="text-gray-600 mb-4 line-clamp-3">{laporan.deskripsi}</p>
+      <p className="text-gray-600 mb-4 line-clamp-3 leading-relaxed">{laporan.deskripsi}</p>
       
       {/* Files */}
       <div className="flex gap-2 mb-4">
@@ -428,9 +483,10 @@ const LaporanCard = ({ laporan, currentUser, onLike, onComment, onEdit, onDelete
             href={laporan.filePdf}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 text-red-600 hover:text-red-800 text-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium"
           >
-            <FaFilePdf /> PDF
+            <FaFilePdf className="w-3.5 h-3.5" />
+            <span>PDF</span>
           </a>
         )}
         {laporan.filePpt && (
@@ -438,63 +494,75 @@ const LaporanCard = ({ laporan, currentUser, onLike, onComment, onEdit, onDelete
             href={laporan.filePpt}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 text-orange-600 hover:text-orange-800 text-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium"
           >
-            <FaFilePowerpoint /> PPT
+            <FaFilePowerpoint className="w-3.5 h-3.5" />
+            <span>PPT</span>
           </a>
         )}
       </div>
 
       {/* Meta Info */}
-      <div className="text-sm text-gray-500 mb-4">
-        <p>Oleh: {laporan.nama}</p>
-        <p>Divisi: {laporan.divisi}</p>
-        <p>Tanggal: {formatDate(laporan.tanggal)}</p>
+      <div className="space-y-2 mb-4">
+        <div className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-full text-sm">
+          <FaUser className="text-blue-500 w-3.5 h-3.5" />
+          <span className="font-medium text-gray-700">{laporan.nama}</span>
+        </div>
+        <div className="flex items-center gap-2 bg-green-50 px-3 py-1 rounded-full text-sm">
+          <FaBuilding className="text-green-500 w-3.5 h-3.5" />
+          <span className="font-medium text-gray-700">{laporan.divisi}</span>
+        </div>
+        <div className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-full text-sm">
+          <FaCalendarAlt className="text-gray-500 w-3.5 h-3.5" />
+          <span className="font-medium text-gray-700">{formatDate(laporan.tanggal)}</span>
+        </div>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center justify-between border-t pt-4">
+      <div className="flex items-center justify-between border-t border-gray-200 pt-4">
         <div className="flex items-center gap-4">
           <button
             onClick={() => onLike(laporan._id)}
-            className={`flex items-center gap-1 ${
-              isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 ${
+              isLiked 
+                ? 'text-red-500 bg-red-50 hover:bg-red-100' 
+                : 'text-gray-500 hover:text-red-500 hover:bg-gray-50'
             }`}
           >
-            <FaHeart className={isLiked ? 'fill-current' : ''} />
-            <span>{laporan.likes?.length || 0}</span>
+            <FaHeart className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
+            <span className="font-medium">{laporan.likes?.length || 0}</span>
           </button>
           
           <button
             onClick={() => setShowCommentInput(!showCommentInput)}
-            className="flex items-center gap-1 text-gray-500 hover:text-blue-500"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all duration-200"
           >
-            <FaComment />
-            <span>{laporan.comments?.length || 0}</span>
+            <FaComment className="w-3.5 h-3.5" />
+            <span className="font-medium">{laporan.comments?.length || 0}</span>
           </button>
           
-          <div className="flex items-center gap-1 text-gray-500">
-            <FaEye />
-            <span>{laporan.views || 0}</span>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 text-gray-500 bg-gray-50 rounded-lg">
+            <FaEye className="w-3.5 h-3.5" />
+            <span className="font-medium">{laporan.views || 0}</span>
           </div>
         </div>
       </div>
 
       {/* Comment Input */}
       {showCommentInput && (
-        <div className="mt-4 border-t pt-4">
+        <div className="mt-4 border-t border-gray-200 pt-4">
           <div className="flex gap-2">
             <input
               type="text"
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Tulis komentar..."
-              className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
               onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit()}
             />
             <button
               onClick={handleCommentSubmit}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
             >
               Kirim
             </button>
@@ -504,15 +572,15 @@ const LaporanCard = ({ laporan, currentUser, onLike, onComment, onEdit, onDelete
 
       {/* Comments */}
       {laporan.comments && laporan.comments.length > 0 && (
-        <div className="mt-4 border-t pt-4 space-y-2">
+        <div className="mt-4 border-t border-gray-200 pt-4 space-y-2">
           {laporan.comments.slice(-2).map((comment, index) => (
-            <div key={index} className="text-sm">
+            <div key={index} className="text-sm bg-gray-50 rounded-lg p-2">
               <span className="font-medium text-gray-900">{comment.nama}</span>
               <span className="text-gray-600 ml-2">{comment.comment}</span>
             </div>
           ))}
           {laporan.comments.length > 2 && (
-            <p className="text-xs text-gray-500">dan {laporan.comments.length - 2} komentar lainnya...</p>
+            <p className="text-xs text-gray-500 text-center">dan {laporan.comments.length - 2} komentar lainnya...</p>
           )}
         </div>
       )}
@@ -523,14 +591,15 @@ const LaporanCard = ({ laporan, currentUser, onLike, onComment, onEdit, onDelete
 // Komponen LaporanModal
 const LaporanModal = ({ formData, setFormData, selectedLaporan, uploadProgress, onSubmit, onClose, onFileChange }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white/95 backdrop-blur-sm rounded-3xl max-w-2xl w-full max-h-screen overflow-y-auto shadow-2xl border border-white/30">
         <div className="p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
+          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            <FaFileAlt className="w-5 h-5 text-blue-600" />
             {selectedLaporan ? 'Edit Laporan' : 'Tambah Laporan Baru'}
           </h2>
           
-          <form onSubmit={onSubmit} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-6">
             {/* Jenis Laporan */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -539,7 +608,7 @@ const LaporanModal = ({ formData, setFormData, selectedLaporan, uploadProgress, 
               <select
                 value={formData.jenis}
                 onChange={(e) => setFormData(prev => ({ ...prev, jenis: e.target.value }))}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
                 required
               >
                 <option value="kegiatan_harian">Kegiatan Harian</option>
@@ -556,7 +625,7 @@ const LaporanModal = ({ formData, setFormData, selectedLaporan, uploadProgress, 
                 type="text"
                 value={formData.judul}
                 onChange={(e) => setFormData(prev => ({ ...prev, judul: e.target.value }))}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
                 placeholder="Masukkan judul laporan"
                 required
               />
@@ -571,7 +640,7 @@ const LaporanModal = ({ formData, setFormData, selectedLaporan, uploadProgress, 
                 value={formData.deskripsi}
                 onChange={(e) => setFormData(prev => ({ ...prev, deskripsi: e.target.value }))}
                 rows="4"
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
                 placeholder="Deskripsi detail laporan"
                 required
               />
@@ -586,7 +655,7 @@ const LaporanModal = ({ formData, setFormData, selectedLaporan, uploadProgress, 
                 type="date"
                 value={formData.tanggal}
                 onChange={(e) => setFormData(prev => ({ ...prev, tanggal: e.target.value }))}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
                 required
               />
             </div>
@@ -600,7 +669,7 @@ const LaporanModal = ({ formData, setFormData, selectedLaporan, uploadProgress, 
                 type="file"
                 accept=".pdf"
                 onChange={(e) => onFileChange(e, 'pdf')}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
               />
               {uploadProgress.pdf !== undefined && (
                 <div className="mt-2">
@@ -629,7 +698,7 @@ const LaporanModal = ({ formData, setFormData, selectedLaporan, uploadProgress, 
                 type="file"
                 accept=".ppt,.pptx"
                 onChange={(e) => onFileChange(e, 'ppt')}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
               />
               {uploadProgress.ppt !== undefined && (
                 <div className="mt-2">
@@ -664,17 +733,17 @@ const LaporanModal = ({ formData, setFormData, selectedLaporan, uploadProgress, 
             </div>
 
             {/* Buttons */}
-            <div className="flex justify-end gap-4 pt-4 border-t">
+            <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                className="px-6 py-3 text-gray-700 bg-gray-200 rounded-xl hover:bg-gray-300 transition-all duration-200 font-medium"
               >
                 Batal
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
               >
                 {selectedLaporan ? 'Update' : 'Simpan'}
               </button>
