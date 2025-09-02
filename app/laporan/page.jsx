@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import useAuth from '@/hooks/useAuth';
+import useUserRole from '@/hooks/useUserRole';
 import NavbarGeneral from '@/components/NavbarGeneral';
 import { FaPlus, FaFileAlt, FaFilePdf, FaFilePowerpoint, FaEye, FaHeart, FaComment, FaEdit, FaTrash, FaDownload, FaUser, FaCalendarAlt, FaBuilding, FaFilter } from 'react-icons/fa';
 
 const LaporanPage = () => {
-  const { user, userRole } = useAuth();
+  const { user } = useAuth();
+  const { role: userRole } = useUserRole();
   const [laporan, setLaporan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // 'all', 'kegiatan_harian', 'project_akhir'
