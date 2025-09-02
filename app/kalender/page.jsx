@@ -34,10 +34,15 @@ const InternCalendar = () => {
     interns: [],
   });
   const [canViewDetail, setCanViewDetail] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+      setIsLoggedIn(!!user);
+      if (!user) {
+        setCanViewDetail(false);
+        return;
+      }
       const token = await user.getIdTokenResult();
       const role = token.claims.role;
       setCanViewDetail(role === "admin" || role === "pembimbing");
@@ -63,7 +68,11 @@ const InternCalendar = () => {
           tanggalSelesai: new Date(intern.tanggalSelesai)
         }));
 
-        setInterns(processedData);
+        const finalData = isLoggedIn
+          ? processedData
+          : processedData.filter(item => item.status === 'aktif');
+
+        setInterns(finalData);
       } catch (err) {
         setError(err.message);
         console.error('Error fetching intern data:', err);
@@ -73,7 +82,7 @@ const InternCalendar = () => {
     };
 
     fetchInterns();
-  }, []);
+  }, [isLoggedIn]);
 
   const internsByDate = useMemo(() => {
     const dateMap = new Map();
