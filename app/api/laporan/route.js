@@ -34,7 +34,7 @@ export async function GET(request) {
       // Untuk peserta magang, hanya lihat laporan public atau miliknya sendiri
       filter = { $or: [{ isPublic: true }, { userId }] };
     } else if (role === 'pembimbing' && pembimbingId) {
-      // Untuk pembimbing, perlu melakukan join dengan data intern
+      // Untuk pembimbing, hanya laporan dari anak bimbingannya
       const internInfo = await InternInfo.find({ pembimbing: pembimbingId }).lean();
       const internUserIds = internInfo.map(intern => intern.userId);
       filter = { userId: { $in: internUserIds } };
