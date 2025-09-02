@@ -95,9 +95,8 @@ export default function PenilaianPage() {
 
                 const data = await response.json();
 
-                // Pembimbing hanya bisa menilai anak bimbingannya yang sudah selesai
-                const myFinishedMentees = data.interns.filter(
-                    i => i.status === "selesai" && i.pembimbing?._id === currentMentor._id
+                const myFinishedMentees = (data.interns || []).filter(
+                    (i) => i.status === "selesai" && i.pembimbing?._id === currentMentor._id
                 );
 
                 setInterns(myFinishedMentees);

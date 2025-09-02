@@ -374,7 +374,7 @@ export default function SertifikatSaya() {
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <button
             onClick={handlePrint}
-            className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center"
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -414,9 +414,9 @@ export default function SertifikatSaya() {
                   Belum diisi oleh admin
                 </p>
               )}
-              <p className="text-xs text-gray-500 mt-2">
+              {/* <p className="text-xs text-gray-500 mt-2">
                 Debug info - User ID: {userInternData.userId} | Nama: {userInternData.nama}
-              </p>
+              </p> */}
             </div>
           )}
         </div>

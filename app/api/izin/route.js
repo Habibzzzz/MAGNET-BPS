@@ -2,6 +2,7 @@ import connectMongoDB from "@/libs/mongodb";
 import { NextResponse } from "next/server";
 import Izin from "@/models/izinInfo";
 import Intern from "@/models/internInfo";
+import Pembimbing from "@/models/mentorInfo";
 
 export async function POST(request) {
   try {
@@ -61,19 +62,65 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
     const date = searchParams.get("date");
+    const pembimbingUserId = searchParams.get("pembimbingUserId");
 
     let query = {};
-    if (userId && date) {
-      const startDate = new Date(date);
-      const endDate = new Date(date);
-      endDate.setDate(endDate.getDate() + 1);
-      
+
+    // Jika ada pembimbingUserId, cari izin anak magang yang dibimbing
+    if (pembimbingUserId) {
+      console.log("Mencari pembimbing dengan userId:", pembimbingUserId);
+      const pembimbingData = await Pembimbing.findOne({ userId: pembimbingUserId });
+
+      if (!pembimbingData) {
+        console.log("Pembimbing tidak ditemukan");
+        return NextResponse.json({ izin: [] }, { status: 200 });
+      }
+
+      console.log("Pembimbing ditemukan:", pembimbingData.nama);
+
+      // Cari intern yang dibimbing oleh pembimbing ini
+      const interns = await Intern.find({
+        pembimbing: pembimbingData._id
+      });
+
+      console.log("Jumlah intern bimbingan:", interns.length);
+
+      if (interns.length === 0) {
+        return NextResponse.json({ izin: [] }, { status: 200 });
+      }
+
+      // Ambil semua userId dari intern yang dibimbing
+      const internUserIds = interns.map(intern => intern.userId);
+
+      // Query izin dari semua intern yang dibimbing
+      query.idUser = { $in: internUserIds };
+
+      // Jika ada filter tanggal, tambahkan
+      if (date) {
+        const startDate = new Date(date);
+        const endDate = new Date(date);
+        endDate.setDate(endDate.getDate() + 1);
+
+        query.izinDate = {
+          $gte: startDate,
+          $lt: endDate
+        };
+      }
+    } else if (userId) {
+      // Original logic untuk userId
       query.idUser = userId;
-      query.izinDate = {
-        $gte: startDate,
-        $lt: endDate
+
+      if(date){
+        const startDate = new Date(date);
+        const endDate = new Date(date);
+        endDate.setDate(endDate.getDate() + 1);
+
+        query.izinDate = {
+          $gte: startDate,
+          $lt: endDate
+        };
       };
-    };
+    }
 
     // Get izin data
     const izinData = await Izin.find(query).sort({ izinDate: -1 });

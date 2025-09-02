@@ -121,6 +121,7 @@ export default function Dashboard() {
         const pembimbing = token.claims.role === "pembimbing";
         setIsAdmin(admin);
         setIsPembimbing(pembimbing);
+        console.log(token.claims.role);
         if (token.claims.role === "pembimbing") {
           console.log("ini pembimbing");
         } else {

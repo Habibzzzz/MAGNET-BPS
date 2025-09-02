@@ -20,7 +20,9 @@ export default function IzinTable() {
 
   const fetchUserInternData = async (queryParam) => {
     try {
-      const response = await axios.get(`/api/intern?${queryParam}`);
+      const url = "/api/izin";
+      const config = { params: { userId: userId } };
+      const response = await axios.get(url, config);
       if (response.data?.interns?.length > 0) {
         console.log("✅ Intern ditemukan:", response.data.interns[0].nama);
         setUserInternData(response.data.interns[0]);
@@ -46,9 +48,13 @@ export default function IzinTable() {
           if (token.claims.role === "admin") {
             console.log("👑 Ini admin");
             // Fetch list of interns if admin
-            fetchInternList();
+            fetchInternList(token.claims.role);
+          } else if (token.claims.role === "pembimbing") {
+            console.log("👨‍🏫 Ini pembimbing");
+            // Fetch list of interns for pembimbing
+            fetchInternList(token.claims.role, token.claims.user_id);
           } else {
-            console.log("🙅‍♂️ Bukan admin");
+            console.log("🙅‍♂️ Bukan admin atau pembimbing");
           }
         } catch (error) {
           console.error("Error getting token:", error);
@@ -59,17 +65,38 @@ export default function IzinTable() {
     return () => unsubscribe();
   }, []);
 
-  // Fetch list of all interns (for admin)
-  const fetchInternList = async () => {
-    try {
-      const response = await axios.get("/api/intern");
-      if (response.data && response.data.interns) {
-        setInternList(response.data.interns);
+  // Fetch list of all interns (for admin) or interns under pembimbing
+  const fetchInternList = async (role, id) => {
+    if (role === "admin") {
+      try {
+        const response = await axios.get("/api/intern");
+        if (response.data && response.data.interns) {
+          setInternList(response.data.interns);
+        }
+      } catch (error) {
+        console.error("Error fetching intern list:", error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching intern list:", error);
-    } finally {
-      setIsLoading(false);
+    } else if (role === "pembimbing") {
+      try {
+        const url = "/api/intern";
+        const config = { params: { pembimbingUserId: id } };
+        const response = await axios.get(url, config);
+        console.log("Response data pembimbing:", response.data);
+        if (response.data && response.data.interns) {
+          console.log(`Ditemukan ${response.data.interns.length} anak magang bimbingan`);
+          setInternList(response.data.interns);
+        } else {
+          console.log("Tidak ada data anak magang bimbingan");
+          setInternList([]);
+        }
+      } catch (error) {
+        console.error("Error fetching intern list:", error);
+        setInternList([]);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -83,6 +110,8 @@ export default function IzinTable() {
       console.log(`Fetching izin data for intern ID: ${internId}`);
 
       const response = await axios.get(url, config);
+      console.log("Response izin data:", response.data);
+      console.log(`Ditemukan ${response.data.izin?.length || 0} data izin`);
       setData(response.data.izin?.length ? response.data : { izin: [] });
       setNullLength(!response.data.izin?.length);
       setViewMode("detail");
@@ -145,7 +174,7 @@ export default function IzinTable() {
       try {
         // const url = "/api/izin";
         // const config = { params: { email : user.email } };
-        const response = await axios.get(`/api/intern?userId=${userId}`);
+        const response = await axios.get(`/api/izin?userId=${userId}`);
 
         console.log(`Fetching izin data untuk user ${userId}…`);
 
@@ -209,7 +238,9 @@ export default function IzinTable() {
 
     return (
       <div className="overflow-x-auto">
-        <h2 className="text-xl font-bold mb-4">Daftar Anak Magang</h2>
+        <h2 className="text-xl font-bold mb-4">
+          {role === "pembimbing" ? "Daftar Anak Magang Bimbingan Saya" : "Daftar Anak Magang"}
+        </h2>
         <table className="w-full bg-white border border-gray-200 rounded-lg shadow-md">
           <thead>
             <tr className="bg-gray-100">
@@ -262,7 +293,7 @@ export default function IzinTable() {
             <button
               onClick={goBackToInternList}
               className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded mb-4 flex items-center">
-              <span className="mr-2">←</span> Kembali ke Daftar Anak Magang
+              <span className="mr-2">←</span> Kembali ke {role === "pembimbing" ? "Daftar Anak Magang Bimbingan" : "Daftar Anak Magang"}
             </button>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -344,8 +375,8 @@ export default function IzinTable() {
     );
   }
 
-  // Admin view
-  if (role === "admin") {
+  // Admin & Pembimbing view
+  if (role === "admin" || role === "pembimbing") {
     return <div className="w-full">{viewMode === "list" ? renderInternList() : renderIzinDetail()}</div>;
   }
 

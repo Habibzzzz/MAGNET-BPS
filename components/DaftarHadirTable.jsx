@@ -47,12 +47,15 @@ export default function DaftarHadirTable() {
           const token = await user.getIdTokenResult();
           setUserId(token.claims.user_id);
           setRole(token.claims.role);
-          
+
           // Log role status
           if (token.claims.role === "admin") {
             console.log("👑 Ini admin");
             // Fetch list of interns if admin
-            fetchInternList();
+            fetchInternList(token.claims.role);
+          } else if (token.claims.role === "pembimbing") {
+            console.log("Ini adalah Pembimbing");
+            fetchInternList(token.claims.role , token.claims.user_id)
           } else {
             console.log("🙅‍♂️ Bukan admin");
           }
@@ -66,16 +69,35 @@ export default function DaftarHadirTable() {
   }, []);
 
   // Fetch list of all interns (for admin)
-  const fetchInternList = async () => {
-    try {
-      const response = await axios.get("/api/intern");
-      if (response.data && response.data.interns) {
-        setInternList(response.data.interns);
+  const fetchInternList = async (role , id) => {
+    if (role === "admin") {
+      try {
+        const response = await axios.get("/api/intern");
+        if (response.data && response.data.interns) {
+          setInternList(response.data.interns);
+        }
+      } catch (error) {
+        console.error("Error fetching intern list:", error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching intern list:", error);
-    } finally {
-      setIsLoading(false);
+    } else if (role === "pembimbing") {
+      try {
+        const url = "/api/intern";
+        const config = { params: { pembimbingUserId: id } }; // Ganti parameter
+        const response = await axios.get(url, config);
+        console.log("Response data:", response.data); // Tambahkan log
+        if (response.data && response.data.interns) {
+          setInternList(response.data.interns);
+        } else {
+          console.log("Tidak ada data anak magang bimbingan");
+          setInternList([]);
+        }
+      } catch (error) {
+        console.error("Error fetching intern list:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -85,9 +107,9 @@ export default function DaftarHadirTable() {
     try {
       const url = "/api/absen";
       const config = { params: { userId: internId } };
-      
+
       console.log(`Fetching attendance data for intern ID: ${internId}`);
-      
+
       const response = await axios.get(url, config);
       setData(response.data.absensi?.length ? response.data : setNullLength(true));
       setViewMode("attendance");
@@ -177,12 +199,12 @@ export default function DaftarHadirTable() {
   // Helper function untuk extract keterangan masuk dan pulang
   const extractKeterangan = (keteranganMasuk) => {
     if (!keteranganMasuk) return { masuk: "-", pulang: "-" };
-    
+
     if (keteranganMasuk.includes(" | ")) {
       const [masuk, pulang] = keteranganMasuk.split(" | ");
       return { masuk: masuk || "-", pulang: pulang || "-" };
     }
-    
+
     return { masuk: keteranganMasuk, pulang: "-" };
   };
 
@@ -216,7 +238,7 @@ export default function DaftarHadirTable() {
 
     return (
       <div className="overflow-x-auto">
-        <h2 className="text-xl font-bold mb-4">Daftar Anak Magang</h2>
+        <h2 className="text-xl font-bold mb-4">{role === "pembimbing" ? "Daftar Anak Magang Bimbingan Saya" : "Daftar Anak Magang"}</h2>
         <table className="w-full bg-white border border-gray-200 rounded-lg shadow-md">
           <thead>
             <tr className="bg-gray-100">
@@ -233,7 +255,7 @@ export default function DaftarHadirTable() {
             {internList.map((intern, index) => {
               const startDate = new Date(intern.tanggalMulai).toLocaleDateString('id-ID');
               const endDate = new Date(intern.tanggalSelesai).toLocaleDateString('id-ID');
-              
+
               return (
                 <tr
                   key={intern._id}
@@ -244,12 +266,11 @@ export default function DaftarHadirTable() {
                   <td className="px-6 py-4 text-sm text-gray-900">{intern.divisi || "-"}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{`${startDate} s/d ${endDate}`}</td>
                   <td className="px-6 py-4 text-sm">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      intern.status === 'aktif' ? 'bg-green-100 text-green-800' : 
-                      intern.status === 'selesai' ? 'bg-blue-100 text-blue-800' :
-                      intern.status === 'dikeluarkan' ? 'bg-red-100 text-red-800' : 
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-xs ${intern.status === 'aktif' ? 'bg-green-100 text-green-800' :
+                        intern.status === 'selesai' ? 'bg-blue-100 text-blue-800' :
+                          intern.status === 'dikeluarkan' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                      }`}>
                       {intern.status.charAt(0).toUpperCase() + intern.status.slice(1)}
                     </span>
                   </td>
@@ -279,13 +300,13 @@ export default function DaftarHadirTable() {
       <>
         {selectedIntern && (
           <div className="mb-6">
-            <button 
+            <button
               onClick={goBackToInternList}
               className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded mb-4 flex items-center"
             >
               <span className="mr-2">←</span> Kembali ke Daftar Anak Magang
             </button>
-            
+
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <h2 className="text-xl font-bold mb-2">Data Absensi: {selectedIntern.nama}</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -363,7 +384,7 @@ export default function DaftarHadirTable() {
   }
 
   // Admin view
-  if (role === "admin") {
+  if (role === "admin" || role === "pembimbing") {
     return (
       <div className="w-full">
         {viewMode === "list" ? renderInternList() : renderAttendanceTable()}
@@ -399,7 +420,7 @@ export default function DaftarHadirTable() {
           </div>
         </div>
       )}
-      
+
       {nullLength ? (
         <div className="flex justify-center items-center min-h-[300px] w-full">
           <h1>Anda belum memiliki riwayat daftar hadir sama sekali</h1>
