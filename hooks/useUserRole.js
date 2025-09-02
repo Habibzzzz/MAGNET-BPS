@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, getDocFromCache, getDocFromServer } from "firebase/firestore";
 import { auth } from "./../app/firebase/config";
-import { db } from "./../app/firebase/config";
 
 export default function useUserRole() {
     const [role, setRole] = useState(null);
@@ -13,23 +11,18 @@ export default function useUserRole() {
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, async (user) => {
             if (user) {
-                const docRef = doc(db, "users", user.uid);
                 try {
-                    // Try cache first to avoid network dependency
-                    const cacheSnap = await getDocFromCache(docRef);
-                    if (cacheSnap.exists()) {
-                        setRole(cacheSnap.data().role);
-                        setLoading(false);
-                        return;
-                    }
-                } catch (_) {}
-                try {
-                    const serverSnap = await getDocFromServer(docRef);
-                    if (serverSnap.exists()) {
-                        setRole(serverSnap.data().role);
+                    const token = await user.getIdToken();
+                    const res = await fetch('/api/auth/verify-token', {
+                        headers: { Authorization: `Bearer ${token}` },
+                        cache: 'no-store'
+                    });
+                    const data = await res.json();
+                    if (data?.success && data?.role) {
+                        setRole(data.role);
                     }
                 } catch (e) {
-                    console.warn('Failed to fetch role from server, falling back to default', e);
+                    console.warn('Role fetch via verify-token failed', e);
                 }
             }
             setLoading(false);
