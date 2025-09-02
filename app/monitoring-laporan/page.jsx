@@ -17,57 +17,93 @@ const MonitoringLaporanPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [mentor, setMentor] = useState(null);
   const [interns, setInterns] = useState([]);
+  const [token, setToken] = useState(null);
 
   useEffect(() => {
     if (!user) return;
-    if (roleLoading) return; // tunggu role siap biar gak redirect prematur
+    if (roleLoading) return; // tunggu role siap
 
     if (userRole !== 'admin' && userRole !== 'pembimbing') {
       router.push('/dashboard');
       return;
     }
 
+    let isActive = true;
+    const controller = new AbortController();
+
+    const init = async () => {
+      try {
+        const t = await user.getIdToken();
+        if (!isActive) return;
+        setToken(t);
+
+        if (userRole === 'pembimbing') {
+          const m = await fetchMentorData(t, controller.signal);
+          if (!isActive) return;
+          await fetchLaporan(t, m?._id, controller.signal);
+        } else if (userRole === 'admin') {
+          await fetchLaporan(t, undefined, controller.signal);
+        }
+      } catch (e) {
+        if (e.name !== 'AbortError') {
+          console.error(e);
+        }
+      }
+    };
+
+    init();
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, [user, userRole, roleLoading, router]);
+
+  // Re-fetch when filter changes, after token and (if needed) mentor loaded
+  useEffect(() => {
+    if (!user || roleLoading) return;
+    if (!token) return;
+    const controller = new AbortController();
     if (userRole === 'pembimbing') {
-      fetchMentorData();
+      if (!mentor?._id) return; // wait mentor ready
+      fetchLaporan(token, mentor._id, controller.signal);
+    } else if (userRole === 'admin') {
+      fetchLaporan(token, undefined, controller.signal);
     }
+    return () => controller.abort();
+  }, [filter, user, roleLoading, token, mentor, userRole]);
 
-    fetchLaporan();
-  }, [user, userRole, roleLoading, router, filter]);
-
-  const fetchMentorData = async () => {
+  const fetchMentorData = async (t, signal) => {
     try {
-      const token = await user.getIdToken();
       const response = await fetch(`/api/mentor?userId=${user.uid}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${t}`
+        },
+        signal
       });
       
       const data = await response.json();
       if (data.success && data.pembimbing) {
         setMentor(data.pembimbing);
         
-        // Ambil data intern yang dibimbing
-        const internsResponse = await fetch(`/api/intern?pembimbingId=${data.pembimbing._id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        const internsData = await internsResponse.json();
-        if (internsData.success) {
-          setInterns(internsData.interns || []);
-        }
+        // Optional: tunda fetch interns untuk percepat initial load
+        // Bisa diaktifkan kalau butuh
+        // const internsResponse = await fetch(`/api/intern?pembimbingId=${data.pembimbing._id}`, {
+        //   headers: { 'Authorization': `Bearer ${t}` }, signal
+        // });
+        // const internsData = await internsResponse.json();
+        // if (internsData.success) setInterns(internsData.interns || []);
+
+        return data.pembimbing;
       }
     } catch (error) {
       console.error('Error fetching mentor data:', error);
     }
+    return null;
   };
 
-  const fetchLaporan = async () => {
+  const fetchLaporan = async (t, pembimbingId, signal) => {
     try {
       setLoading(true);
-      const token = await user.getIdToken();
       let url = '/api/laporan';
       
       const params = new URLSearchParams();
@@ -76,9 +112,9 @@ const MonitoringLaporanPage = () => {
       }
       
       // Tambahkan parameter role
-      params.append('role', userRole);
-      if (userRole === 'pembimbing' && mentor?._id) {
-        params.append('pembimbingId', mentor._id);
+      params.append('role', userRole || '');
+      if (userRole === 'pembimbing' && pembimbingId) {
+        params.append('pembimbingId', pembimbingId);
       }
       
       if (params.toString()) {
@@ -87,8 +123,9 @@ const MonitoringLaporanPage = () => {
       
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${t}`
+        },
+        signal
       });
       
       const data = await response.json();
