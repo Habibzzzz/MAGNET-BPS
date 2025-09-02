@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'; // Import useMemo
 import { ChevronLeft, ChevronRight, User, Calendar, Building, GraduationCap, MapPin, Clock, Mail, Hash, X } from 'lucide-react';
 import NavbarGeneral from '@/components/NavbarGeneral';
 import axios from 'axios';
-import ProtectedRoute from '@/components/ProtectedRoutes';
+// import ProtectedRoute from '@/components/ProtectedRoutes';
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/app/firebase/config";
 
@@ -220,8 +220,7 @@ const InternCalendar = () => {
   };
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         {/* Modal untuk Daftar Intern Harian */}
         {dayDetail.isOpen && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -478,7 +477,6 @@ const InternCalendar = () => {
           )}
         </div>
       </div>
-    </ProtectedRoute>
   );
 };
 
