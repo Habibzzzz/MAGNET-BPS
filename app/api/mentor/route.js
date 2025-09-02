@@ -2,13 +2,21 @@ import { NextResponse } from "next/server";
 import Pembimbing from "@/models/mentorInfo";
 import connectMongoDB from "@/libs/mongodb";
 
-export async function GET() {
+export async function GET(request) {
     await connectMongoDB();
     try {
-        const mentors = await Pembimbing.find({ status: 'aktif' });
-        return NextResponse.json(mentors, {status: 200});
+        const { searchParams } = new URL(request.url);
+        const userId = searchParams.get('userId');
+
+        if (userId) {
+            const pembimbing = await Pembimbing.findOne({ userId }).lean();
+            return NextResponse.json({ success: true, pembimbing: pembimbing || null }, { status: 200 });
+        }
+
+        const mentors = await Pembimbing.find({ status: 'aktif' }).lean();
+        return NextResponse.json({ success: true, mentors }, { status: 200 });
     } catch (error) {
-        return NextResponse.json({ message: "Gagal mengambil data pembimbing.", error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, message: "Gagal mengambil data pembimbing.", error: error.message }, { status: 500 });
     }
 }
 
