@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import useAuth from '@/hooks/useAuth';
+import useUserRole from '@/hooks/useUserRole';
 import { useRouter } from 'next/navigation';
 import NavbarGeneral from '@/components/NavbarGeneral';
 import { FaFileAlt, FaFilePdf, FaFilePowerpoint, FaEye, FaDownload, FaUser, FaCalendarAlt, FaBuilding, FaSearch, FaFilter, FaChartBar } from 'react-icons/fa';
 
 const MonitoringLaporanPage = () => {
-  const { user, userRole } = useAuth();
+  const { user } = useAuth();
+  const { role: userRole } = useUserRole();
   const router = useRouter();
   const [laporan, setLaporan] = useState([]);
   const [loading, setLoading] = useState(true);
