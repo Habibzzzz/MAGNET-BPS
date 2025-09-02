@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import useAuth from '@/hooks/useAuth';
+import useUserRole from '@/hooks/useUserRole';
 import { useRouter } from 'next/navigation';
 import NavbarGeneral from '@/components/NavbarGeneral';
 import { FaFileAlt, FaFilePdf, FaFilePowerpoint, FaEye, FaDownload, FaUser, FaCalendarAlt, FaBuilding, FaSearch, FaFilter, FaChartBar } from 'react-icons/fa';
 
 const MonitoringLaporanPage = () => {
-  const { user, userRole } = useAuth();
+  const { user } = useAuth();
+  const { role: userRole, loading: roleLoading } = useUserRole();
   const router = useRouter();
   const [laporan, setLaporan] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,57 +17,104 @@ const MonitoringLaporanPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [mentor, setMentor] = useState(null);
   const [interns, setInterns] = useState([]);
+  const [token, setToken] = useState(null);
 
   useEffect(() => {
-    if (user) {
-      if (userRole !== 'admin' && userRole !== 'pembimbing') {
-        router.push('/dashboard');
-        return;
-      }
-      
-      // Jika pembimbing, ambil data mentor
-      if (userRole === 'pembimbing') {
-        fetchMentorData();
-      }
-      
-      fetchLaporan();
-    }
-  }, [user, userRole, router, filter]);
+    if (!user) return;
+    if (roleLoading) return; // tunggu role siap
 
-  const fetchMentorData = async () => {
+    if (userRole && userRole !== 'admin' && userRole !== 'pembimbing') {
+      router.push('/dashboard');
+      return;
+    }
+
+    let isActive = true;
+    const controller = new AbortController();
+
+    const init = async () => {
+      try {
+        const t = await user.getIdToken();
+        if (!isActive) return;
+        setToken(t);
+
+        if (userRole === 'pembimbing') {
+          const m = await fetchMentorData(t, controller.signal);
+          if (!isActive) return;
+          if (!m?._id) {
+            // Tidak punya record pembimbing → jangan ngegantung loading
+            setLaporan([]);
+            setLoading(false);
+            return;
+          }
+          await fetchLaporan(t, m._id, controller.signal);
+        } else if (userRole === 'admin' || !userRole) {
+          await fetchLaporan(t, undefined, controller.signal, 'admin');
+        }
+      } catch (e) {
+        if (e.name !== 'AbortError') {
+          console.error(e);
+        }
+      }
+    };
+
+    init();
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, [user, userRole, roleLoading, router]);
+
+  // Re-fetch when filter changes, after token and (if needed) mentor loaded
+  useEffect(() => {
+    if (!user || roleLoading) return;
+    if (!token) return;
+    const controller = new AbortController();
+    if (userRole === 'pembimbing') {
+      if (!mentor?._id) {
+        // Tidak ada mentor id → tampilkan kosong, jangan fetch
+        setLaporan([]);
+        setLoading(false);
+        return () => controller.abort();
+      }
+      fetchLaporan(token, mentor._id, controller.signal);
+    } else if (userRole === 'admin') {
+      fetchLaporan(token, undefined, controller.signal, 'admin');
+    }
+    return () => controller.abort();
+  }, [filter, user, roleLoading, token, mentor, userRole]);
+
+  const fetchMentorData = async (t, signal) => {
     try {
-      const token = await user.getIdToken();
       const response = await fetch(`/api/mentor?userId=${user.uid}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${t}`
+        },
+        signal
       });
       
       const data = await response.json();
       if (data.success && data.pembimbing) {
         setMentor(data.pembimbing);
         
-        // Ambil data intern yang dibimbing
-        const internsResponse = await fetch(`/api/intern?pembimbingId=${data.pembimbing._id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        const internsData = await internsResponse.json();
-        if (internsData.success) {
-          setInterns(internsData.interns || []);
-        }
+        // Optional: tunda fetch interns untuk percepat initial load
+        // Bisa diaktifkan kalau butuh
+        // const internsResponse = await fetch(`/api/intern?pembimbingId=${data.pembimbing._id}`, {
+        //   headers: { 'Authorization': `Bearer ${t}` }, signal
+        // });
+        // const internsData = await internsResponse.json();
+        // if (internsData.success) setInterns(internsData.interns || []);
+
+        return data.pembimbing;
       }
     } catch (error) {
       console.error('Error fetching mentor data:', error);
     }
+    return null;
   };
 
-  const fetchLaporan = async () => {
+  const fetchLaporan = async (t, pembimbingId, signal, roleOverride) => {
     try {
       setLoading(true);
-      const token = await user.getIdToken();
       let url = '/api/laporan';
       
       const params = new URLSearchParams();
@@ -73,10 +122,11 @@ const MonitoringLaporanPage = () => {
         params.append('jenis', filter);
       }
       
-      // Tambahkan parameter role
-      params.append('role', userRole);
-      if (userRole === 'pembimbing' && mentor?._id) {
-        params.append('pembimbingId', mentor._id);
+      // Tambahkan parameter role (boleh override)
+      const effectiveRole = roleOverride ?? userRole ?? '';
+      params.append('role', effectiveRole);
+      if (effectiveRole === 'pembimbing' && pembimbingId) {
+        params.append('pembimbingId', pembimbingId);
       }
       
       if (params.toString()) {
@@ -85,8 +135,9 @@ const MonitoringLaporanPage = () => {
       
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${t}`
+        },
+        signal
       });
       
       const data = await response.json();
@@ -130,7 +181,7 @@ const MonitoringLaporanPage = () => {
     );
   });
 
-  if (!user) {
+  if (!user || roleLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">

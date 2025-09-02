@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'; // Import useMemo
 import { ChevronLeft, ChevronRight, User, Calendar, Building, GraduationCap, MapPin, Clock, Mail, Hash, X } from 'lucide-react';
 import NavbarGeneral from '@/components/NavbarGeneral';
 import axios from 'axios';
-import ProtectedRoute from '@/components/ProtectedRoutes';
+// import ProtectedRoute from '@/components/ProtectedRoutes';
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/app/firebase/config";
 
@@ -34,10 +34,15 @@ const InternCalendar = () => {
     interns: [],
   });
   const [canViewDetail, setCanViewDetail] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+      setIsLoggedIn(!!user);
+      if (!user) {
+        setCanViewDetail(false);
+        return;
+      }
       const token = await user.getIdTokenResult();
       const role = token.claims.role;
       setCanViewDetail(role === "admin" || role === "pembimbing");
@@ -63,7 +68,11 @@ const InternCalendar = () => {
           tanggalSelesai: new Date(intern.tanggalSelesai)
         }));
 
-        setInterns(processedData);
+        const finalData = isLoggedIn
+          ? processedData
+          : processedData.filter(item => item.status === 'aktif');
+
+        setInterns(finalData);
       } catch (err) {
         setError(err.message);
         console.error('Error fetching intern data:', err);
@@ -73,7 +82,7 @@ const InternCalendar = () => {
     };
 
     fetchInterns();
-  }, []);
+  }, [isLoggedIn]);
 
   const internsByDate = useMemo(() => {
     const dateMap = new Map();
@@ -220,8 +229,7 @@ const InternCalendar = () => {
   };
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         {/* Modal untuk Daftar Intern Harian */}
         {dayDetail.isOpen && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -285,20 +293,22 @@ const InternCalendar = () => {
               {/* Judul */}
               <h1 className="text-3xl font-bold text-gray-900">Kalender Magang</h1>
 
-              {/* Kontainer untuk Navigasi dan Legenda */}
+              {/* Kontainer untuk Navigasi dan (opsional) Legenda */}
               <div className="flex flex-col-reverse sm:flex-row items-center gap-6">
 
-                {/* Legenda Pewarnaan */}
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 rounded bg-white/80 border border-gray-300 shadow-sm"></div>
-                    <span className="text-sm text-gray-600">Hari Kerja</span>
+                {/* Legenda Pewarnaan - hanya untuk user login */}
+                {isLoggedIn && (
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded bg-white/80 border border-gray-300 shadow-sm"></div>
+                      <span className="text-sm text-gray-600">Hari Kerja</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded bg-red-50/80 border border-red-200 shadow-sm"></div>
+                      <span className="text-sm text-gray-600">Akhir Pekan</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 rounded bg-red-50/80 border border-red-200 shadow-sm"></div>
-                    <span className="text-sm text-gray-600">Akhir Pekan</span>
-                  </div>
-                </div>
+                )}
 
                 {/* Navigasi Bulan */}
                 <div className="flex items-center space-x-2">
@@ -321,20 +331,22 @@ const InternCalendar = () => {
               </div>
             </div>
 
-            {/* Legenda Pewarnaan Status Intern */}
-            <div className="flex flex-wrap items-center space-x-4 mt-4 pt-4 border-t border-gray-200">
-              {[
-                { label: 'Aktif', className: 'bg-green-100 text-green-800' },
-                { label: 'Selesai', className: 'bg-blue-100 text-blue-800' },
-                { label: 'Dikeluarkan', className: 'bg-red-100 text-red-800' },
-                { label: 'Pending', className: 'bg-yellow-100 text-yellow-800' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center space-x-2">
-                  <span className={`w-4 h-4 rounded ${item.className}`}></span>
-                  <span className="text-sm text-gray-600">{item.label}</span>
-                </div>
-              ))}
-            </div>
+            {/* Legenda Pewarnaan Status Intern - hanya untuk user login */}
+            {isLoggedIn && (
+              <div className="flex flex-wrap items-center space-x-4 mt-4 pt-4 border-t border-gray-200">
+                {[
+                  { label: 'Aktif', className: 'bg-green-100 text-green-800' },
+                  { label: 'Selesai', className: 'bg-blue-100 text-blue-800' },
+                  { label: 'Dikeluarkan', className: 'bg-red-100 text-red-800' },
+                  { label: 'Pending', className: 'bg-yellow-100 text-yellow-800' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center space-x-2">
+                    <span className={`w-4 h-4 rounded ${item.className}`}></span>
+                    <span className="text-sm text-gray-600">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Calendar Grid */}
@@ -369,16 +381,22 @@ const InternCalendar = () => {
                           </div>
                           {internsForDate.length > 0 && (
                             <div className="text-center">
-                              <span className={`text-xs font-semibold ${getQuotaColor(internsForDate.length)}`}>
-                                {internsForDate.length} peserta
-                              </span>
+                              {isLoggedIn ? (
+                                <span className={`text-xs font-semibold ${getQuotaColor(internsForDate.length)}`}>
+                                  {internsForDate.length} peserta
+                                </span>
+                              ) : (
+                                <span className={`text-xs font-semibold ${getQuotaColor(internsForDate.length)}`}>
+                                  Tersisa {Math.max(0, DAILY_QUOTA - internsForDate.length)} slot
+                                </span>
+                              )}
                             </div>
                           )}
                         </div>
 
                         {/* Tombol Detail di bawah */}
                         <div className="mt-2">
-                          {internsForDate.length > 0 && (
+                          {internsForDate.length > 0 && isLoggedIn && canViewDetail && (
                             <button
                               onClick={() => openDayDetailModal(date, internsForDate)}
                               className="w-full cursor-pointer text-center text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded-lg transition-all duration-200"
@@ -478,7 +496,6 @@ const InternCalendar = () => {
           )}
         </div>
       </div>
-    </ProtectedRoute>
   );
 };
 

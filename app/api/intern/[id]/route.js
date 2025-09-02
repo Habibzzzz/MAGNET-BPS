@@ -2,8 +2,8 @@ import connectMongoDB from "../../../../lib/mongodb";
 import Intern from "./../../../../models/internInfo";
 import { NextResponse } from "next/server";
 
-export async function PUT(request, { params }) {
-    const { id } = params;
+export async function PUT(request, ctx) {
+    const { id } = await ctx.params;
     console.log('🚀 PUT /api/intern/[id] called for ID:', id);
 
     const {
@@ -59,8 +59,8 @@ export async function PUT(request, { params }) {
     return NextResponse.json({ message: "Data intern berhasil diperbarui" }, { status: 200 });
 }
 
-export async function GET(request, { params }) {
-    const { id } = params;
+export async function GET(request, ctx) {
+    const { id } = await ctx.params;
     await connectMongoDB();
     const intern = await Intern.findById(id).populate('pembimbing', 'nama');
     return NextResponse.json({ intern }, { status: 200 });
