@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, getDocFromCache, getDocFromServer } from "firebase/firestore";
 import { auth } from "./../app/firebase/config";
 import { db } from "./../app/firebase/config";
 
@@ -14,9 +14,22 @@ export default function useUserRole() {
         const unsub = onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const docRef = doc(db, "users", user.uid);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    setRole(docSnap.data().role);
+                try {
+                    // Try cache first to avoid network dependency
+                    const cacheSnap = await getDocFromCache(docRef);
+                    if (cacheSnap.exists()) {
+                        setRole(cacheSnap.data().role);
+                        setLoading(false);
+                        return;
+                    }
+                } catch (_) {}
+                try {
+                    const serverSnap = await getDocFromServer(docRef);
+                    if (serverSnap.exists()) {
+                        setRole(serverSnap.data().role);
+                    }
+                } catch (e) {
+                    console.warn('Failed to fetch role from server, falling back to default', e);
                 }
             }
             setLoading(false);
