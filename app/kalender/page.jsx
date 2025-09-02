@@ -293,20 +293,22 @@ const InternCalendar = () => {
               {/* Judul */}
               <h1 className="text-3xl font-bold text-gray-900">Kalender Magang</h1>
 
-              {/* Kontainer untuk Navigasi dan Legenda */}
+              {/* Kontainer untuk Navigasi dan (opsional) Legenda */}
               <div className="flex flex-col-reverse sm:flex-row items-center gap-6">
 
-                {/* Legenda Pewarnaan */}
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 rounded bg-white/80 border border-gray-300 shadow-sm"></div>
-                    <span className="text-sm text-gray-600">Hari Kerja</span>
+                {/* Legenda Pewarnaan - hanya untuk user login */}
+                {isLoggedIn && (
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded bg-white/80 border border-gray-300 shadow-sm"></div>
+                      <span className="text-sm text-gray-600">Hari Kerja</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded bg-red-50/80 border border-red-200 shadow-sm"></div>
+                      <span className="text-sm text-gray-600">Akhir Pekan</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 rounded bg-red-50/80 border border-red-200 shadow-sm"></div>
-                    <span className="text-sm text-gray-600">Akhir Pekan</span>
-                  </div>
-                </div>
+                )}
 
                 {/* Navigasi Bulan */}
                 <div className="flex items-center space-x-2">
@@ -329,20 +331,22 @@ const InternCalendar = () => {
               </div>
             </div>
 
-            {/* Legenda Pewarnaan Status Intern */}
-            <div className="flex flex-wrap items-center space-x-4 mt-4 pt-4 border-t border-gray-200">
-              {[
-                { label: 'Aktif', className: 'bg-green-100 text-green-800' },
-                { label: 'Selesai', className: 'bg-blue-100 text-blue-800' },
-                { label: 'Dikeluarkan', className: 'bg-red-100 text-red-800' },
-                { label: 'Pending', className: 'bg-yellow-100 text-yellow-800' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center space-x-2">
-                  <span className={`w-4 h-4 rounded ${item.className}`}></span>
-                  <span className="text-sm text-gray-600">{item.label}</span>
-                </div>
-              ))}
-            </div>
+            {/* Legenda Pewarnaan Status Intern - hanya untuk user login */}
+            {isLoggedIn && (
+              <div className="flex flex-wrap items-center space-x-4 mt-4 pt-4 border-t border-gray-200">
+                {[
+                  { label: 'Aktif', className: 'bg-green-100 text-green-800' },
+                  { label: 'Selesai', className: 'bg-blue-100 text-blue-800' },
+                  { label: 'Dikeluarkan', className: 'bg-red-100 text-red-800' },
+                  { label: 'Pending', className: 'bg-yellow-100 text-yellow-800' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center space-x-2">
+                    <span className={`w-4 h-4 rounded ${item.className}`}></span>
+                    <span className="text-sm text-gray-600">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Calendar Grid */}
@@ -377,16 +381,22 @@ const InternCalendar = () => {
                           </div>
                           {internsForDate.length > 0 && (
                             <div className="text-center">
-                              <span className={`text-xs font-semibold ${getQuotaColor(internsForDate.length)}`}>
-                                {internsForDate.length} peserta
-                              </span>
+                              {isLoggedIn ? (
+                                <span className={`text-xs font-semibold ${getQuotaColor(internsForDate.length)}`}>
+                                  {internsForDate.length} peserta
+                                </span>
+                              ) : (
+                                <span className={`text-xs font-semibold ${getQuotaColor(internsForDate.length)}`}>
+                                  Tersisa {Math.max(0, DAILY_QUOTA - internsForDate.length)} slot
+                                </span>
+                              )}
                             </div>
                           )}
                         </div>
 
                         {/* Tombol Detail di bawah */}
                         <div className="mt-2">
-                          {internsForDate.length > 0 && (
+                          {internsForDate.length > 0 && isLoggedIn && canViewDetail && (
                             <button
                               onClick={() => openDayDetailModal(date, internsForDate)}
                               className="w-full cursor-pointer text-center text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded-lg transition-all duration-200"
