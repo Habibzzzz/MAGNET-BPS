@@ -48,7 +48,7 @@ const MonitoringLaporanPage = () => {
           }
           await fetchLaporan(t, m._id, controller.signal);
         } else if (userRole === 'admin' || !userRole) {
-          await fetchLaporan(t, undefined, controller.signal);
+          await fetchLaporan(t, undefined, controller.signal, 'admin');
         }
       } catch (e) {
         if (e.name !== 'AbortError') {
@@ -78,7 +78,7 @@ const MonitoringLaporanPage = () => {
       }
       fetchLaporan(token, mentor._id, controller.signal);
     } else if (userRole === 'admin') {
-      fetchLaporan(token, undefined, controller.signal);
+      fetchLaporan(token, undefined, controller.signal, 'admin');
     }
     return () => controller.abort();
   }, [filter, user, roleLoading, token, mentor, userRole]);
@@ -112,7 +112,7 @@ const MonitoringLaporanPage = () => {
     return null;
   };
 
-  const fetchLaporan = async (t, pembimbingId, signal) => {
+  const fetchLaporan = async (t, pembimbingId, signal, roleOverride) => {
     try {
       setLoading(true);
       let url = '/api/laporan';
@@ -122,9 +122,10 @@ const MonitoringLaporanPage = () => {
         params.append('jenis', filter);
       }
       
-      // Tambahkan parameter role
-      params.append('role', userRole || '');
-      if (userRole === 'pembimbing' && pembimbingId) {
+      // Tambahkan parameter role (boleh override)
+      const effectiveRole = roleOverride ?? userRole ?? '';
+      params.append('role', effectiveRole);
+      if (effectiveRole === 'pembimbing' && pembimbingId) {
         params.append('pembimbingId', pembimbingId);
       }
       
