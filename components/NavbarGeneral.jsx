@@ -46,7 +46,11 @@ export default function NavbarGeneral({ title, subTitle }) {
     }, [user, interns]);
 
     const handleBack = () => {
-        route.push("/dashboard")
+        if (user) {
+            route.push("/dashboard");
+        } else {
+            route.push("/");
+        }
     }
 
     return (
@@ -69,7 +73,7 @@ export default function NavbarGeneral({ title, subTitle }) {
                         </div>
                     </div>
                     <div className="flex flex-col sm:flex-row items-start sm:mx-0 mx-auto sm:items-center gap-5 ">
-                        <SignOutButton />
+                        {user && <SignOutButton />}
                     </div>
                 </div>
             </div>
