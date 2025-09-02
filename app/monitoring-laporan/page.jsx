@@ -40,7 +40,13 @@ const MonitoringLaporanPage = () => {
         if (userRole === 'pembimbing') {
           const m = await fetchMentorData(t, controller.signal);
           if (!isActive) return;
-          await fetchLaporan(t, m?._id, controller.signal);
+          if (!m?._id) {
+            // Tidak punya record pembimbing → jangan ngegantung loading
+            setLaporan([]);
+            setLoading(false);
+            return;
+          }
+          await fetchLaporan(t, m._id, controller.signal);
         } else if (userRole === 'admin') {
           await fetchLaporan(t, undefined, controller.signal);
         }
@@ -64,7 +70,12 @@ const MonitoringLaporanPage = () => {
     if (!token) return;
     const controller = new AbortController();
     if (userRole === 'pembimbing') {
-      if (!mentor?._id) return; // wait mentor ready
+      if (!mentor?._id) {
+        // Tidak ada mentor id → tampilkan kosong, jangan fetch
+        setLaporan([]);
+        setLoading(false);
+        return () => controller.abort();
+      }
       fetchLaporan(token, mentor._id, controller.signal);
     } else if (userRole === 'admin') {
       fetchLaporan(token, undefined, controller.signal);
