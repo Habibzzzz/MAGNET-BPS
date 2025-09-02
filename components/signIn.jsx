@@ -260,7 +260,7 @@ export default function Login() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPwd(!showPwd)}
-                                    className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100"
+                                    className="text-gray-400 cursor-pointer hover:text-gray-600"
                                 >
                                     {showPwd ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                 </button>
@@ -272,7 +272,7 @@ export default function Login() {
                                 <button
                                     type="button"
                                     onClick={handleForgotPassword}
-                                    className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200 underline decoration-blue-300 hover:decoration-blue-500"
+                                    className="text-sm text-blue-600 cursor-pointer hover:text-blue-700"
                                 >
                                     Lupa password?
                                 </button>
@@ -433,7 +433,7 @@ export default function Login() {
                         <button
                             type="submit"
                             disabled={isLoading || loading || creating || nikError}
-                            className="w-full px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                            className="w-full cursor-pointer px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
                         >
                             {(isLoading || loading || creating) ? (
                                 <>
@@ -449,10 +449,10 @@ export default function Login() {
                     </form>
 
                     <div className="mt-8 text-center">
-                        <p className="text-gray-600 mb-4">
+                        <p className="text-gray-600">
                             {isLogin ? 'Belum punya akun?' : 'Sudah punya akun?'}
                         </p>
-                        <div className='space-y-3'>
+                        <div className='flex flex-col gap-2'>
                             <button
                                 onClick={() => {
                                     setIsLogin(!isLogin);
@@ -472,25 +472,17 @@ export default function Login() {
                                     setError("");
                                     setNikError("");
                                 }}
-                                className="w-full px-6 py-3 bg-blue-50 text-blue-600 font-semibold rounded-xl hover:bg-blue-100 transition-all duration-200 border border-blue-200 hover:border-blue-300 shadow-sm"
+                                className="mt-2 text-blue-600 font-semibold hover:text-blue-700 cursor-pointer"
                             >
                                 {isLogin ? 'Daftar Sebagai Peserta' : 'Masuk'}
                             </button>
                             {isLogin && (
-                                <>
-                                    <button
-                                        className="w-full px-6 py-3 bg-indigo-50 text-indigo-600 font-semibold rounded-xl hover:bg-indigo-100 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 shadow-sm"
-                                        onClick={() => router.push('/sign-upMentor')}
-                                    >
-                                        Daftar Sebagai Pembimbing
-                                    </button>
-                                    <button
-                                        className="w-full px-6 py-3 bg-green-50 text-green-600 font-semibold rounded-xl hover:bg-green-100 transition-all duration-200 border border-green-200 hover:border-green-300 shadow-sm"
-                                        onClick={() => router.push('/jadwalMagang')}
-                                    >
-                                        Lihat Jadwal & Kuota Magang
-                                    </button>
-                                </>
+                                <button
+                                    className="mt-2 text-blue-600 font-semibold hover:text-blue-700 cursor-pointer"
+                                    onClick={() => router.push('/sign-upMentor')}
+                                >
+                                    Daftar Sebagai Pembimbing
+                                </button>
                             )}
                         </div>
                     </div>

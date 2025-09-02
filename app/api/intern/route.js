@@ -1,8 +1,7 @@
 import Intern from "@/models/internInfo";
 import connectMongoDB from "@/lib/mongodb";
 import { NextResponse } from "next/server";
-import User from "../../../models/User";
-import Pembimbing from "@/models/mentorInfo"; // <-- Tambahkan baris ini
+import Pembimbing from "@/models/mentorInfo"
 
 export async function GET(request) {
     try {
@@ -12,6 +11,23 @@ export async function GET(request) {
         const month = searchParams.get("month");
         const userId = searchParams.get("userId");
         const email = searchParams.get("email");
+        const pembimbingUserId = searchParams.get("pembimbingUserId");
+
+        if (pembimbingUserId) {
+            const pembimbingData = await Pembimbing.findOne({ userId: pembimbingUserId });
+
+            if (!pembimbingData) {
+                return NextResponse.json({ interns: [] });
+            }
+
+            const interns = await Intern.find({
+                pembimbing: pembimbingData._id
+            }).populate('pembimbing', 'nama').sort({ nama: 1 });
+
+            console.log("Jumlah interns ditemukan: ", interns.length);
+
+            return NextResponse.json({ interns });
+        }
 
         // Jika ada userId, cari berdasarkan userId
         if (userId) {

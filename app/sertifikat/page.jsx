@@ -299,12 +299,17 @@ const SertifikatPage = () => {
   const filteredData = data.filter((item) => {
     const searchTerm = filters.search?.toLowerCase();
 
-    const matchesDropdowns = !filters.prodi || item.prodi?.toLowerCase() === filters.prodi.toLowerCase();
-    !filters.sekolah || item.sekolah?.toLowerCase() === filters.sekolah.toLowerCase();
+    const matchesProdi =
+    !filters.prodi ||
+    item.prodi?.toLowerCase().includes(filters.prodi.toLowerCase());
+
+    const matchesSekolah =
+      !filters.sekolah ||
+      item.sekolah?.toLowerCase().includes(filters.sekolah.toLowerCase());
 
     const matchesSearch = !searchTerm || Object.values(item).some((val) => String(val).toLowerCase().includes(searchTerm));
 
-    return matchesDropdowns && matchesSearch;
+    return matchesProdi && matchesSekolah && matchesSearch;
   });
 
   const handleFilterChange = (e) => {
@@ -694,16 +699,6 @@ const SertifikatPage = () => {
               <div className="flex justify-between items-center w-full mb-4">
                 <h1 className="text-2xl font-bold">Cetak Sertifikat</h1>
                 <div className="space-x-2">
-                  <button
-                    className="bg-blue-600 text-white px-4 py-2 rounded shadow cursor-pointer"
-                    onClick={() => setShowAddForm(true)}>
-                    Add Data
-                  </button>
-                  <button
-                    onClick={() => setShowImportModal(true)}
-                    className="bg-gray-400 text-white px-4 py-2 rounded shadow cursor-pointer">
-                    Import Data
-                  </button>
                 </div>
               </div>
             </div>
@@ -755,22 +750,22 @@ const SertifikatPage = () => {
 
             <div className="bg-white p-4 border rounded-b shadow">
               {/* Filter */}
-              <div className="grid grid-cols-4 gap-4 mb-4">
-                <select
-                  className="border p-2 rounded"
-                  value={filters.prodi}
-                  onChange={(e) => setFilters({ ...filters, prodi: e.target.value })}>
-                  <option value="">Prodi</option>
-                  <option value="TKJ">TKJ</option>
-                </select>
-                <select
-                  className="border p-2 rounded"
-                  value={filters.sekolah}
-                  onChange={(e) => setFilters({ ...filters, sekolah: e.target.value })}>
-                  <option value="">Sekolah/Perguruan Tinggi</option>
-                  <option value="UNILA">Universitas Lampung</option>
-                </select>
-              </div>
+<div className="grid grid-cols-4 gap-4 mb-4">
+  <input
+    type="text"
+    className="border p-2 rounded"
+    placeholder="Prodi"
+    value={filters.prodi}
+    onChange={(e) => setFilters({ ...filters, prodi: e.target.value })}
+  />
+  <input
+    type="text"
+    className="border p-2 rounded"
+    placeholder="Sekolah/Perguruan Tinggi"
+    value={filters.sekolah}
+    onChange={(e) => setFilters({ ...filters, sekolah: e.target.value })}
+  />
+  </div>
 
               {/* Tombol Aksi */}
               <div className="flex flex-wrap gap-2 mb-4">
@@ -863,7 +858,7 @@ const SertifikatPage = () => {
                               <button
                                 onClick={() => handleCetakMagang(item)}
                                 className="bg-green-600 text-white px-3 py-1 rounded text-xs cursor-pointer">
-                                MAGANG/KP/PKL
+                                Lihat Sertifikat
                               </button>
 
                               <button
@@ -871,20 +866,12 @@ const SertifikatPage = () => {
                                 onClick={() => handleEditClick(item)}>
                                 EDIT
                               </button>
-                              <button
+                              {/* <button
                                 className="bg-red-600 text-white px-2 py-1 rounded text-sm cursor-pointer"
                                 onClick={() => handleDeleteClick(item.id)}>
                                 HAPUS
-                              </button>
+                              </button> */}
 
-                              <button
-                                className={`px-4 py-2 rounded text-white ${disabledButtons[item.id] ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}
-                                disabled={disabledButtons[item.id]}
-                                onClick={() => handleTambahSertifikat(item)}>
-                                {disabledButtons[item.id] ? "Sudah Ditambahkan" : "Tambah ke Akun"}
-                              </button>
-
-                              {/* Add Verification Button */}
                               <button
                                 className={`px-3 py-1 rounded text-white ${item.isSertifikatVerified ? "bg-green-500" : item.hasValidId ? "bg-purple-600 hover:bg-purple-700" : "bg-gray-400"}`}
                                 onClick={() => handleVerifySertifikat(item)}
@@ -895,17 +882,21 @@ const SertifikatPage = () => {
 
                               {/* Add Update Nomor Sertifikat Button */}
                               {item.hasValidId && (
-                                <button
-                                  className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs cursor-pointer"
-                                  onClick={() => {
-                                    const newNomor = prompt(`Masukkan nomor sertifikat untuk ${item.nama}:`, item.nomorSertifikat || "");
-                                    if (newNomor !== null) {
-                                      handleUpdateNomorSertifikat(item.id, newNomor);
-                                    }
-                                  }}
-                                  title="Update nomor sertifikat">
-                                  UPDATE NOMOR
-                                </button>
+                              <button
+                                className={`bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs
+                                ${!item.nomorSertifikat ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                                onClick={() => {
+                                  if (!item.nomorSertifikat) return;
+                                  const newNomor = prompt(`Masukkan nomor sertifikat untuk ${item.nama}:`, item.nomorSertifikat || "");
+                                  if (newNomor !== null) {
+                                    handleUpdateNomorSertifikat(item.id, newNomor);
+                                  }
+                                }}
+                                title="Update nomor sertifikat"
+                                disabled={!item.nomorSertifikat}
+                              >
+                                UPDATE NOMOR
+                              </button>
                               )}
                             </div>
                           </td>
@@ -1269,21 +1260,13 @@ const SertifikatPage = () => {
                           className="block text-sm font-medium text-gray-700">
                           Prodi
                         </label>
-                        <select
+                        <input
                           defaultValue={editData.prodi}
                           id="editProdi"
                           name="prodi"
                           type="text"
-                          className="w-full border border-gray-300 p-3 rounded-md text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                          <option value="">--- Pilih Prodi ---</option>
-                          <option value="Ilkom">Ilmu Komputer</option>
-                          <option value="RPL">Rekayasa Perangkat Lunak</option>
-                          <option value="TKJ">Teknik Komputer dan Jaringan</option>
-                          <option value="MM">Multimedia</option>
-                          <option value="AKL">Akuntansi dan Keuangan Lembaga</option>
-                          <option value="OTKP">Otomatisasi dan Tata Kelola Perkantoran</option>
-                          <option value="BDP">Bisnis Daring dan Pemasaran</option>
-                        </select>
+                          className="w-full border border-gray-300 p-3 rounded-md text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          /> 
                       </div>
 
                       <div className="space-y-1">

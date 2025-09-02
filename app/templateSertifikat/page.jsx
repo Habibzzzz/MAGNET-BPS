@@ -120,12 +120,6 @@ export default function TemplatePage() {
                 <h1 className="text-2xl font-semibold">Template Sertifikat</h1>
               </div>
               <div>
-                <button
-                  onClick={handleCleanupTemplates}
-                  disabled={loading}
-                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors">
-                  {loading ? "Processing..." : "Hapus Template Non-Default"}
-                </button>
               </div>
             </div>
 
