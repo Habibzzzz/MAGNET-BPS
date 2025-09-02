@@ -9,7 +9,7 @@ import { FaFileAlt, FaFilePdf, FaFilePowerpoint, FaEye, FaDownload, FaUser, FaCa
 
 const MonitoringLaporanPage = () => {
   const { user } = useAuth();
-  const { role: userRole } = useUserRole();
+  const { role: userRole, loading: roleLoading } = useUserRole();
   const router = useRouter();
   const [laporan, setLaporan] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,20 +19,20 @@ const MonitoringLaporanPage = () => {
   const [interns, setInterns] = useState([]);
 
   useEffect(() => {
-    if (user) {
-      if (userRole !== 'admin' && userRole !== 'pembimbing') {
-        router.push('/dashboard');
-        return;
-      }
-      
-      // Jika pembimbing, ambil data mentor
-      if (userRole === 'pembimbing') {
-        fetchMentorData();
-      }
-      
-      fetchLaporan();
+    if (!user) return;
+    if (roleLoading) return; // tunggu role siap biar gak redirect prematur
+
+    if (userRole !== 'admin' && userRole !== 'pembimbing') {
+      router.push('/dashboard');
+      return;
     }
-  }, [user, userRole, router, filter]);
+
+    if (userRole === 'pembimbing') {
+      fetchMentorData();
+    }
+
+    fetchLaporan();
+  }, [user, userRole, roleLoading, router, filter]);
 
   const fetchMentorData = async () => {
     try {
@@ -132,7 +132,7 @@ const MonitoringLaporanPage = () => {
     );
   });
 
-  if (!user) {
+  if (!user || roleLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
