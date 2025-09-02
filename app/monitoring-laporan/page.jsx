@@ -23,7 +23,7 @@ const MonitoringLaporanPage = () => {
     if (!user) return;
     if (roleLoading) return; // tunggu role siap
 
-    if (userRole !== 'admin' && userRole !== 'pembimbing') {
+    if (userRole && userRole !== 'admin' && userRole !== 'pembimbing') {
       router.push('/dashboard');
       return;
     }
@@ -47,7 +47,7 @@ const MonitoringLaporanPage = () => {
             return;
           }
           await fetchLaporan(t, m._id, controller.signal);
-        } else if (userRole === 'admin') {
+        } else if (userRole === 'admin' || !userRole) {
           await fetchLaporan(t, undefined, controller.signal);
         }
       } catch (e) {
