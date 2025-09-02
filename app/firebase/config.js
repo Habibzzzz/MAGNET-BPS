@@ -19,7 +19,6 @@ const auth = getAuth(app);
 // Fix WebChannel/network proxy issues (client offline / 400 Listen)
 export const db = initializeFirestore(app, {
 	experimentalForceLongPolling: true,
-	experimentalAutoDetectLongPolling: true,
 	useFetchStreams: false,
 });
 
