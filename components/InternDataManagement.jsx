@@ -46,7 +46,7 @@ export default function InternDataManagement({
     const handleTanggalMulaiChange = (e) => setNewTanggalMulai(e.target.value);
     const handleTanggalSelesaiChange = (e) => setNewTanggalSelesai(e.target.value);
     const handleDivisiChange = (e) => setNewDivisi(e.target.value);
-    const handlePembimbingChange = (e) => setNewPembimbing(e.target.value);
+    const handlePembimbingChange = (e) => setNewPembimbingId(e.target.value);
     const handleStatusChange = (e) => {
         const newStatusValue = e.target.value;
         setNewStatus(newStatusValue);
@@ -67,7 +67,8 @@ export default function InternDataManagement({
                 if (!res.ok) throw new Error("Gagal mengambil daftar pembimbing");
 
                 const data = await res.json();
-                setPembimbingList(data);
+                const list = Array.isArray(data) ? data : Array.isArray(data.mentors) ? data.mentors : [];
+                setPembimbingList(list);
             } catch (error) {
                 console.error("Error fetching pembimbings: ", error);
                 setError(error.message);

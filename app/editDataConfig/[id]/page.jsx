@@ -4,7 +4,8 @@ import ProtectedRoute from "@/components/ProtectedRoutes";
 import InternDataManagement from "@/components/InternDataManagement";
 
 export default function EditDataPage({ params }) {
-  const { id } = params;
+  const { use } = React;
+  const { id } = use(params);
   
   return (
     <ProtectedRoute>
