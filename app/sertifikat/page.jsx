@@ -1,10 +1,11 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Papa from "papaparse";
 import PreviewSertifikat from "../../components/PreviewSertifikat";
 import NavbarGeneral from "@/components/NavbarGeneral";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/app/firebase/config"; // sesuaikan dengan path firebase config Anda
+import { useReactToPrint } from "react-to-print";
 
 const SertifikatPage = () => {
   // Existing state
@@ -37,6 +38,10 @@ const SertifikatPage = () => {
   // New state for intern data
   const [loading, setLoading] = useState(true);
   const [disabledButtons, setDisabledButtons] = useState({});
+  
+  // State untuk download functionality
+  const [downloadingCertId, setDownloadingCertId] = useState(null);
+  const downloadSertifikatRef = useRef(null);
 
   // Getting Role for Role Access
   useEffect(() => {
@@ -442,6 +447,127 @@ const SertifikatPage = () => {
       alert("Gagal mengambil template");
     }
   };
+
+  // Fungsi untuk download sertifikat langsung sebagai PDF
+  const handleDownloadSertifikat = async (item) => {
+    try {
+      setDownloadingCertId(item.id);
+      
+      // Check if nomor sertifikat is filled
+      if (!item.nomorSertifikat || item.nomorSertifikat.trim() === "") {
+        const confirmDownload = confirm(`Nomor sertifikat untuk ${item.nama} belum diisi.\n\nApakah Anda yakin ingin melanjutkan download sertifikat?\n\nSertifikat akan menampilkan "No. [BELUM DIISI]"`);
+        if (!confirmDownload) {
+          setDownloadingCertId(null);
+          return;
+        }
+      }
+
+      const res = await fetch("/api/template");
+      const templates = await res.json();
+
+      if (Array.isArray(templates) && templates.length > 0) {
+        // Format tanggal untuk tampilan sertifikat
+        const formatTanggalIndonesia = (dateStr) => {
+          if (!dateStr) return "-";
+          const date = new Date(dateStr);
+          const options = { day: "numeric", month: "long", year: "numeric" };
+          return date.toLocaleDateString("id-ID", options);
+        };
+
+        const tanggalMulaiFormatted = formatTanggalIndonesia(item.tanggalMulai);
+        const tanggalSelesaiFormatted = formatTanggalIndonesia(item.tanggalSelesai);
+        const today = new Date();
+        const tanggalSaatIni = formatTanggalIndonesia(today);
+
+        // Generate template untuk download
+        const downloadTemplate = {
+          ...templates[0],
+          elements: templates[0].elements.map((el) => {
+            if (el.label === "Nama Peserta") {
+              return { ...el, value: item.nama };
+            } else if (el.id === 2 || el.label === "Nomor Sertifikat" || el.label === "Nomor" || el.label.toLowerCase().includes("nomor") || el.label.toLowerCase().includes("no")) {
+              return { ...el, value: item.nomorSertifikat || "No. [BELUM DIISI]" };
+            } else if (el.id === 5 && el.label === "Deskripsi") {
+              return {
+                ...el,
+                value: `atas partisipasinya dalam kegiatan Magang/KP/PKL di lingkungan BPS Kota Bandar Lampung periode ${tanggalMulaiFormatted} sampai ${tanggalSelesaiFormatted}`,
+              };
+            } else if (el.id === 6 && el.label === "Tanggal") {
+              return { ...el, value: `Bandar Lampung, ${tanggalSaatIni}` };
+            } else if (el.label === "Tanggal Mulai" || el.label.includes("mulai")) {
+              return { ...el, value: tanggalMulaiFormatted };
+            } else if (el.label === "Tanggal Selesai" || el.label.includes("selesai")) {
+              return { ...el, value: tanggalSelesaiFormatted };
+            } else if (el.label === "Lama Magang" || el.label.includes("lama")) {
+              return { ...el, value: item.lamaMagang };
+            } else if (el.label === "Program Studi" || el.label === "Prodi") {
+              return { ...el, value: item.prodi };
+            } else if (el.label === "Sekolah" || el.label === "Perguruan Tinggi" || el.label.includes("kampus")) {
+              return { ...el, value: item.sekolah };
+            }
+            return el;
+          }),
+        };
+
+        // Set template untuk komponen tersembunyi dan trigger print
+        setPreviewData(downloadTemplate);
+        
+        // Tunggu sebentar agar DOM terupdate, lalu trigger download
+        setTimeout(() => {
+          handlePrintForDownload(item.nama);
+        }, 500);
+        
+      } else {
+        throw new Error("Invalid template format");
+      }
+    } catch (error) {
+      console.error("Error downloading certificate:", error);
+      alert("Gagal download sertifikat");
+      setDownloadingCertId(null);
+    }
+  };
+
+  // Konfigurasi print untuk download
+  const handlePrintForDownload = useReactToPrint({
+    contentRef: downloadSertifikatRef,
+    documentTitle: (nama) => `Sertifikat_${nama || "Peserta"}_BPS`,
+    pageStyle: `
+      @page {
+        size: landscape;
+        margin: 0;
+      }
+      @media print {
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        html {
+          zoom: 160%;
+          -ms-zoom: 160%;
+          -webkit-zoom: 160%;
+        }
+        @-moz-document url-prefix() {
+          body {
+            transform: scale(1.6);
+            transform-origin: top left;
+          }
+        }
+      }
+    `,
+    onAfterPrint: () => {
+      setDownloadingCertId(null);
+    },
+    onBeforeGetContent: () => {
+      return new Promise((resolve) => {
+        if (previewData && downloadSertifikatRef.current) {
+          resolve();
+        } else {
+          console.error("Tidak ada sertifikat yang dapat didownload");
+          setDownloadingCertId(null);
+        }
+      });
+    },
+  });
 
   const handleImport = (e) => {
     const file = e.target.files[0];
@@ -862,6 +988,24 @@ const SertifikatPage = () => {
                               </button>
 
                               <button
+                                onClick={() => handleDownloadSertifikat(item)}
+                                disabled={downloadingCertId === item.id}
+                                className={`px-3 py-1 rounded text-xs text-white ${
+                                  downloadingCertId === item.id 
+                                    ? "bg-gray-400 cursor-not-allowed" 
+                                    : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                                }`}>
+                                {downloadingCertId === item.id ? (
+                                  <div className="flex items-center">
+                                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                                    Downloading...
+                                  </div>
+                                ) : (
+                                  "Download PDF"
+                                )}
+                              </button>
+
+                              <button
                                 className="bg-blue-500 text-white px-2 py-1 rounded text-sm cursor-pointer"
                                 onClick={() => handleEditClick(item)}>
                                 EDIT
@@ -934,6 +1078,15 @@ const SertifikatPage = () => {
                       Tutup
                     </button>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Hidden component untuk download sertifikat */}
+            {previewData && (
+              <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+                <div ref={downloadSertifikatRef}>
+                  <PreviewSertifikat template={previewData} />
                 </div>
               </div>
             )}
