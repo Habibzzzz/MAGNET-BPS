@@ -68,9 +68,8 @@ const InternCalendar = () => {
           tanggalSelesai: new Date(intern.tanggalSelesai)
         }));
 
-        const finalData = isLoggedIn
-          ? processedData
-          : processedData.filter(item => item.status === 'aktif');
+        // Filter untuk menampilkan hanya intern dengan status 'aktif'
+        const finalData = processedData.filter(item => item.status === 'aktif');
 
         setInterns(finalData);
       } catch (err) {
