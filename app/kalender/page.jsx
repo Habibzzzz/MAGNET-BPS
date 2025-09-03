@@ -68,8 +68,10 @@ const InternCalendar = () => {
           tanggalSelesai: new Date(intern.tanggalSelesai)
         }));
 
-        // Filter untuk menampilkan hanya intern dengan status 'aktif'
-        const finalData = processedData.filter(item => item.status === 'aktif');
+        // Filter untuk menampilkan intern dengan status 'aktif' dan 'pending'
+        const finalData = processedData.filter(item => 
+          item.status === 'aktif' || item.status === 'pending'
+        );
 
         setInterns(finalData);
       } catch (err) {
