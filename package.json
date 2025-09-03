@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node server.js",
+    "production": "NODE_ENV=production node server.js",
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
