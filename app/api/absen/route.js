@@ -101,26 +101,37 @@ export async function POST(request) {
     } else {
       // jenisAbsen === "pulang"
       if (!existingAbsen) {
-        return NextResponse.json({ 
-          error: "Anda belum melakukan absen datang hari ini" 
-        }, { status: 400 });
-      }
+        // Jika belum ada absen datang, buat absen baru dengan status pulang
+        absensi = new DaftarHadir({
+          idUser: userId,
+          absenDate: waktuData,
+          checkoutTime: waktuData, // Langsung set checkout time
+          longCordinate: parseFloat(longCordinate),
+          latCordinate: parseFloat(latCordinate),
+          checkoutLongCordinate: parseFloat(longCordinate),
+          checkoutLatCordinate: parseFloat(latCordinate),
+          messageText: "Tidak ada catatan datang", // Default message
+          checkoutMessageText: dailyNote,
+          keteranganMasuk: `Tidak Absen Datang | ${KeteranganAbsen}`,
+          jenisAbsen: "pulang"
+        });
 
-      if (existingAbsen.checkoutTime) {
+        await absensi.save();
+      } else if (existingAbsen.checkoutTime) {
         return NextResponse.json({ 
           error: "Anda sudah melakukan absen pulang hari ini" 
         }, { status: 400 });
+      } else {
+        // Update absen yang sudah ada dengan waktu pulang
+        existingAbsen.checkoutTime = waktuData;
+        existingAbsen.checkoutLongCordinate = parseFloat(longCordinate);
+        existingAbsen.checkoutLatCordinate = parseFloat(latCordinate);
+        existingAbsen.checkoutMessageText = dailyNote;
+        existingAbsen.keteranganMasuk = `${existingAbsen.keteranganMasuk} | ${KeteranganAbsen}`;
+        
+        await existingAbsen.save();
+        absensi = existingAbsen;
       }
-
-      // Update absen yang sudah ada dengan waktu pulang
-      existingAbsen.checkoutTime = waktuData;
-      existingAbsen.checkoutLongCordinate = parseFloat(longCordinate);
-      existingAbsen.checkoutLatCordinate = parseFloat(latCordinate);
-      existingAbsen.checkoutMessageText = dailyNote;
-      existingAbsen.keteranganMasuk = `${existingAbsen.keteranganMasuk} | ${KeteranganAbsen}`;
-      
-      await existingAbsen.save();
-      absensi = existingAbsen;
     }
 
     return NextResponse.json({

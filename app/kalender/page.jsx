@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react'; // Import useMemo
 import { ChevronLeft, ChevronRight, User, Calendar, Building, GraduationCap, MapPin, Clock, Mail, Hash, X } from 'lucide-react';
 import NavbarGeneral from '@/components/NavbarGeneral';
+
 import axios from 'axios';
 // import ProtectedRoute from '@/components/ProtectedRoutes';
 import { onAuthStateChanged } from "firebase/auth";

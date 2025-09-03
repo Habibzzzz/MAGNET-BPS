@@ -13,6 +13,7 @@ import {
 import { auth } from './../app/firebase/config';
 import { Eye, EyeOff, Mail, Lock, User, Hash, GraduationCap, Building, Calendar } from 'lucide-react';
 import Modal from './Modal';
+import StatusPendaftaran from './StatusPendaftaran';
 
 export default function Login() {
     const [isLogin, setIsLogin] = useState(true);
@@ -490,6 +491,11 @@ export default function Login() {
                                     >
                                         Lihat Kalender
                                     </button>
+                                    
+                                    {/* Status Pendaftaran Section */}
+                                    <div className="mt-6">
+                                        <StatusPendaftaran />
+                                    </div>
                                 </>
                             )}
                         </div>
