@@ -68,10 +68,8 @@ const InternCalendar = () => {
           tanggalSelesai: new Date(intern.tanggalSelesai)
         }));
 
-        // Filter untuk menampilkan intern dengan status 'aktif' dan 'pending'
-        const finalData = processedData.filter(item => 
-          item.status === 'aktif' || item.status === 'pending'
-        );
+        // Filter untuk menampilkan hanya intern dengan status 'aktif'
+        const finalData = processedData.filter(item => item.status === 'aktif');
 
         setInterns(finalData);
       } catch (err) {
@@ -380,19 +378,21 @@ const InternCalendar = () => {
                           <div className={`text-sm font-medium mb-2 ${isToday ? 'text-blue-600 font-bold' : 'text-gray-700'}`}>
                             {date.getDate()}
                           </div>
-                          {internsForDate.length > 0 && (
-                            <div className="text-center">
-                              {isLoggedIn ? (
+                          <div className="text-center">
+                            {isLoggedIn ? (
+                              // Untuk user login: tampilkan jumlah peserta jika ada
+                              internsForDate.length > 0 && (
                                 <span className={`text-xs font-semibold ${getQuotaColor(internsForDate.length)}`}>
                                   {internsForDate.length} peserta
                                 </span>
-                              ) : (
-                                <span className={`text-xs font-semibold ${getQuotaColor(internsForDate.length)}`}>
-                                  Tersisa {Math.max(0, DAILY_QUOTA - internsForDate.length)} slot
-                                </span>
-                              )}
-                            </div>
-                          )}
+                              )
+                            ) : (
+                              // Untuk user belum login: selalu tampilkan sisa slot
+                              <span className={`text-xs font-semibold ${getQuotaColor(internsForDate.length)}`}>
+                                Tersisa {Math.max(0, DAILY_QUOTA - internsForDate.length)} slot
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         {/* Tombol Detail di bawah */}
