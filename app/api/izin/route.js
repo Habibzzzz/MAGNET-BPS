@@ -2,7 +2,7 @@ import connectMongoDB from "@/libs/mongodb";
 import { NextResponse } from "next/server";
 import Izin from "@/models/izinInfo";
 import Intern from "@/models/internInfo";
-import Pembimbing from "@/models/mentorInfo";
+import { Pembimbing } from "@/models";
 
 export async function POST(request) {
   try {

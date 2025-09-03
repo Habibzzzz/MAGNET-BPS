@@ -1,7 +1,7 @@
 import Intern from "@/models/internInfo";
 import connectMongoDB from "@/lib/mongodb";
 import { NextResponse } from "next/server";
-import Pembimbing from "@/models/mentorInfo"
+import { Pembimbing } from "@/models"
 
 export async function GET(request) {
     try {
@@ -22,7 +22,7 @@ export async function GET(request) {
 
             const interns = await Intern.find({
                 pembimbing: pembimbingData._id
-            }).populate('pembimbing', 'nama').sort({ nama: 1 });
+            }).populate('pembimbing', 'nama nip email divisi').sort({ nama: 1 });
 
             console.log("Jumlah interns ditemukan: ", interns.length);
 
@@ -31,13 +31,13 @@ export async function GET(request) {
 
         // Jika ada userId, cari berdasarkan userId
         if (userId) {
-            const intern = await Intern.findOne({ userId }).populate('pembimbing', 'nama');
+            const intern = await Intern.findOne({ userId }).populate('pembimbing', 'nama nip email divisi');
             return NextResponse.json({ interns: intern ? [intern] : [] });
         }
 
         // Jika ada email, cari berdasarkan email
         if (email) {
-            const intern = await Intern.findOne({ email }).populate('pembimbing', 'nama');
+            const intern = await Intern.findOne({ email }).populate('pembimbing', 'nama nip email divisi');
             return NextResponse.json({ interns: intern ? [intern] : [] });
         }
 
@@ -51,14 +51,14 @@ export async function GET(request) {
                 tanggalMulai: { $lte: endOfMonth },
                 tanggalSelesai: { $gte: startOfMonth },
             })
-                .populate('pembimbing')
+                .populate('pembimbing', 'nama nip email divisi')
                 .sort({ nama: 1 });
 
             return NextResponse.json({ interns });
         }
 
         // Default: return semua interns
-        const interns = await Intern.find().populate('pembimbing', 'nama');
+        const interns = await Intern.find().populate('pembimbing', 'nama nip email divisi');
         return NextResponse.json({ interns });
     } catch (error) {
         console.error("GET Error:", error);
@@ -133,7 +133,7 @@ export async function POST(request) {
             tanggalSelesai: endDate,
             divisi: divisi || "-",
             status: status || "pending",
-            pembimbing: null,
+            pembimbing: pembimbing || null,
             userId,
             email,
             createdAt: createdAt ? new Date(createdAt) : new Date()

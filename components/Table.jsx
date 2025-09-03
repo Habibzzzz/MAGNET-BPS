@@ -69,7 +69,12 @@ export default function Table(intern) {
                     const result = await fetchInternsByMonth(monthQuery);
                     data = result.interns;
                 } else {
-                    const res = await axios.get("/api/intern");
+                    const res = await axios.get("/api/intern", {
+                        headers: {
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache'
+                        }
+                    });
                     data = res.data.interns;
                 }
 

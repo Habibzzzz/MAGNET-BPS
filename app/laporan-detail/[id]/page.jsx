@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import useAuth from '@/hooks/useAuth';
 import NavbarGeneral from '@/components/NavbarGeneral';
 import { FaArrowLeft, FaFilePdf, FaFilePowerpoint, FaDownload, FaUser, FaCalendarAlt, FaBuilding, FaEye, FaHeart, FaComment, FaFileAlt, FaShare } from 'react-icons/fa';
 
 const DetailLaporanPage = () => {
-  const { user, userRole } = useAuth();
+  const { user, checking } = useAuth();
   const router = useRouter();
   const params = useParams();
   const { id } = params;
@@ -15,12 +15,22 @@ const DetailLaporanPage = () => {
   const [laporan, setLaporan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
+  const [userRole, setUserRole] = useState(null);
+
+  // Get user role from token
+  useEffect(() => {
+    if (user) {
+      user.getIdTokenResult().then((token) => {
+        setUserRole(token.claims.role);
+      });
+    }
+  }, [user]);
 
   useEffect(() => {
-    if (user && id) {
+    if (user && id && userRole) {
       fetchLaporanDetail();
     }
-  }, [user, id]);
+  }, [user, id, userRole]);
 
   const fetchLaporanDetail = async () => {
     try {

@@ -38,6 +38,18 @@ const pembimbingSchema = new Schema({
     timestamps: true
 });
 
-const Pembimbing = mongoose.models.Pembimbing || mongoose.model("Pembimbing", pembimbingSchema);
+// Ensure model is always registered properly
+let Pembimbing;
+try {
+    // Check if model exists
+    Pembimbing = mongoose.models.Pembimbing;
+    if (!Pembimbing) {
+        // If model doesn't exist, create it
+        Pembimbing = mongoose.model("Pembimbing", pembimbingSchema);
+    }
+} catch (error) {
+    // If there's any error, force create the model
+    Pembimbing = mongoose.model("Pembimbing", pembimbingSchema);
+}
 
 export default Pembimbing;

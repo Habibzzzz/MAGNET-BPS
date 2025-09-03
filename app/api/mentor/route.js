@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import Pembimbing from "@/models/mentorInfo";
+import { Pembimbing } from "@/models";
 import connectMongoDB from "@/libs/mongodb";
 
 export async function GET(request) {

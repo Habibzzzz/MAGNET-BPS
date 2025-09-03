@@ -1,67 +1,98 @@
-import connectMongoDB from "../../../../lib/mongodb";
-import Intern from "./../../../../models/internInfo";
+import Intern from "@/models/internInfo";
+import { Pembimbing } from "@/models";
+import connectMongoDB from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 
-export async function PUT(request, ctx) {
-    const { id } = await ctx.params;
-    console.log('🚀 PUT /api/intern/[id] called for ID:', id);
+export async function GET(request, { params }) {
+    try {
+        await connectMongoDB();
+        
+        const { id } = await params;
+        
+        if (!id) {
+            return NextResponse.json(
+                { message: "ID intern diperlukan" },
+                { status: 400 }
+            );
+        }
 
-    const {
-        newNama: nama,
-        newNim: nim,
-        newNik: nik,
-        newProdi: prodi,
-        newKampus: kampus,
-        newTanggalMulai: tanggalMulai,
-        newTanggalSelesai: tanggalSelesai,
-        newDivisi: divisi,
-        newStatus: status,
-        newPembimbing: pembimbing,
-        newUserId: userId,
-        newEmail: email,
-        newNomorSertifikat: nomorSertifikat,
-    } = await request.json();
+        const intern = await Intern.findById(id).populate('pembimbing', 'nama nip email divisi');
+        
+        if (!intern) {
+            return NextResponse.json(
+                { message: "Data intern tidak ditemukan" },
+                { status: 404 }
+            );
+        }
 
-    console.log('Received update data:', {
-        nama, nim, prodi, kampus, tanggalMulai, tanggalSelesai, nomorSertifikat
-    });
-
-    await connectMongoDB();
-
-    // First, find the intern to verify it exists
-    const existingIntern = await Intern.findById(id);
-    console.log('Existing intern found:', existingIntern ? 'Yes' : 'No');
-    if (existingIntern) {
-        console.log('Current nomorSertifikat:', existingIntern.nomorSertifikat);
+        return NextResponse.json({ intern });
+    } catch (error) {
+        console.error("GET Error:", error);
+        return NextResponse.json(
+            { message: "Gagal mengambil data intern", error: error.message },
+            { status: 500 }
+        );
     }
-
-    const updateResult = await Intern.findByIdAndUpdate(id, {
-        nama,
-        nim,
-        nik,
-        prodi,
-        kampus,
-        tanggalMulai,
-        tanggalSelesai,
-        divisi,
-        status,
-        pembimbing,
-        userId,
-        email,
-        nomorSertifikat
-    }, { new: true });
-
-    console.log('Update result:', updateResult);
-    if (updateResult) {
-        console.log('Final nomorSertifikat in database:', updateResult.nomorSertifikat);
-    }
-
-    return NextResponse.json({ message: "Data intern berhasil diperbarui" }, { status: 200 });
 }
 
-export async function GET(request, ctx) {
-    const { id } = await ctx.params;
-    await connectMongoDB();
-    const intern = await Intern.findById(id).populate('pembimbing', 'nama');
-    return NextResponse.json({ intern }, { status: 200 });
+export async function PUT(request, { params }) {
+    try {
+        await connectMongoDB();
+        
+        const { id } = await params;
+        const body = await request.json();
+        
+        if (!id) {
+            return NextResponse.json(
+                { message: "ID intern diperlukan" },
+                { status: 400 }
+            );
+        }
+
+        // Map the request body to correct field names
+        const updateData = {
+            nama: body.newNama || body.nama,
+            nim: body.newNim || body.nim,
+            nik: body.newNik || body.nik,
+            prodi: body.newProdi || body.prodi,
+            kampus: body.newKampus || body.kampus,
+            tanggalMulai: body.newTanggalMulai || body.tanggalMulai,
+            tanggalSelesai: body.newTanggalSelesai || body.tanggalSelesai,
+            divisi: body.newDivisi || body.divisi,
+            status: body.newStatus || body.status,
+            pembimbing: body.newPembimbing || body.pembimbing,
+            ...(body.newNomorSertifikat !== undefined && { nomorSertifikat: body.newNomorSertifikat })
+        };
+
+        // Remove undefined values
+        Object.keys(updateData).forEach(key => 
+            updateData[key] === undefined && delete updateData[key]
+        );
+
+        console.log("Update data:", updateData);
+
+        const updatedIntern = await Intern.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true, runValidators: true }
+        ).populate('pembimbing', 'nama nip email divisi');
+
+        if (!updatedIntern) {
+            return NextResponse.json(
+                { message: "Data intern tidak ditemukan" },
+                { status: 404 }
+            );
+        }
+
+        return NextResponse.json({
+            message: "Data intern berhasil diupdate",
+            intern: updatedIntern
+        });
+    } catch (error) {
+        console.error("PUT Error:", error);
+        return NextResponse.json(
+            { message: "Gagal mengupdate data intern", error: error.message },
+            { status: 500 }
+        );
+    }
 }

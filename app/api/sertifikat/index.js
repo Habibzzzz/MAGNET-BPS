@@ -1,5 +1,5 @@
 import connectMongoDB from "@/lib/mongodb";
-import Sertifikat from "@/models/Sertifikat";
+import Sertifikat from "@/models/sertifikat";
 
 export default async function handler(req, res) {
   await connectMongoDB();

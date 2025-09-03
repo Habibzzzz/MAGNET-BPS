@@ -59,7 +59,8 @@ export default function MentorTable() {
             setLoading(true);
             try {
                 const res = await axios.get("/api/mentor");
-                setMentors(Array.isArray(res.data) ? res.data : []);
+                console.log("Mentor API response:", res.data);
+                setMentors(Array.isArray(res.data.mentors) ? res.data.mentors : []);
             } catch (error) {
                 console.error("Gagal memuat data pembimbing:", error);
                 setMentors([]);

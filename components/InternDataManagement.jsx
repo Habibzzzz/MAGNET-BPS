@@ -161,6 +161,8 @@ export default function InternDataManagement({
 
     const handleCloseSuccessModal = () => {
         setShowSuccessModal(false);
+        // Redirect back to data management page after successful update
+        route.push('/dataMagang');
     };
 
     return (

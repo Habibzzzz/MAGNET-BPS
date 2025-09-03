@@ -16,7 +16,7 @@ export async function GET(request, { params }) {
   try {
     await dbConnect();
     
-    const id = params.id;
+    const { id } = await params;
     
     // Verify token (optional for public laporan)
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
