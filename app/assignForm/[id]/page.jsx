@@ -4,7 +4,7 @@ import React from 'react'
 
 const getInternDataById = async (id) => {
     try {
-        const res = await fetch(`http://localhost:3000/api/intern/${id}`, {
+        const res = await fetch(`/api/intern/${id}`, {
             cache: 'no-store',
         });
 

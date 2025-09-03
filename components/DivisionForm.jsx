@@ -22,7 +22,7 @@ export default function DivisionForm({ id, nama, divisi }) {
     useEffect(() => {
         const fetchInterns = async () => {
             try {
-                const res = await fetch(`http://localhost:3000/api/intern/${id}`, {
+                const res = await fetch(`/api/intern/${id}`, {
                     cache: 'no-store',
                 });
 
@@ -82,7 +82,7 @@ export default function DivisionForm({ id, nama, divisi }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch(`http://localhost:3000/api/intern/${id}`, {
+            const response = await fetch(`/api/intern/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Conten-Type': 'application/json',
