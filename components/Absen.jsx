@@ -179,6 +179,25 @@ export default function Absen() {
     setApiError("");
     setTimeError(false); // Reset time error
 
+    // Pre-validation checks
+    if (!user?.uid) {
+      setSubmitError("❌ User belum terautentikasi. Silakan login ulang.");
+      setFormLoading(false);
+      return;
+    }
+
+    if (!formData.longCordinate || !formData.latCordinate) {
+      setSubmitError("❌ Lokasi belum terdeteksi. Pastikan Anda mengizinkan akses lokasi.");
+      setFormLoading(false);
+      return;
+    }
+
+    if (!formData.dailyNote?.trim()) {
+      setSubmitError("❌ Catatan kegiatan harus diisi.");
+      setFormLoading(false);
+      return;
+    }
+
     try {
       const dataToSubmit = {
         userId: user?.uid,
@@ -188,6 +207,15 @@ export default function Absen() {
         dailyNote: formData.dailyNote,
       };
 
+      // Debug logging
+      console.log("🚀 Submitting absen data:", dataToSubmit);
+      console.log("📊 Data validation:", {
+        userId: dataToSubmit.userId ? "✅" : "❌ MISSING",
+        nama: dataToSubmit.nama ? "✅" : "❌ MISSING", 
+        longCordinate: dataToSubmit.longCordinate ? "✅" : "❌ MISSING",
+        latCordinate: dataToSubmit.latCordinate ? "✅" : "❌ MISSING",
+        dailyNote: dataToSubmit.dailyNote ? "✅" : "❌ MISSING"
+      });
 
       const response = await fetch("/api/absen", {
         method: "POST",
@@ -198,6 +226,8 @@ export default function Absen() {
       });
 
       const result = await response.json();
+      
+      console.log("📥 API Response:", { status: response.status, result });
 
       if (!response.ok) {
         // Cek pesan error dari server
