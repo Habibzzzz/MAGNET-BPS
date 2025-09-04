@@ -141,16 +141,21 @@ const LaporanPage = () => {
       const fileSizeMB = (file.size / 1024 / 1024).toFixed(2);
       
       if (file.size > maxSize) {
+        const fileTypeName = type === 'pdf' ? 'PDF' : 'PowerPoint';
+        const compressionTip = type === 'pdf' 
+          ? 'Gunakan PDF compressor online atau reduce quality di export settings'
+          : 'Reduce image quality, remove unnecessary slides, atau compress media di PowerPoint';
+        
         // Show modern notification
         setNotification({
           type: 'error',
-          title: 'File Terlalu Besar!',
-          message: `Ukuran file: ${fileSizeMB} MB (Maksimal: 5 MB). Silakan kompres file atau pilih file yang lebih kecil.`,
+          title: `File ${fileTypeName} Terlalu Besar!`,
+          message: `Ukuran file: ${fileSizeMB} MB (Maksimal: 5 MB). ${compressionTip}.`,
           show: true
         });
         
         // Also show alert as fallback
-        alert(`❌ File terlalu besar!\n\nUkuran file: ${fileSizeMB} MB\nMaksimal: 5 MB\n\nSilakan kompres file Anda atau pilih file yang lebih kecil.`);
+        alert(`❌ File ${fileTypeName} terlalu besar!\n\nUkuran file: ${fileSizeMB} MB\nMaksimal: 5 MB\n\n💡 Tips: ${compressionTip}`);
         
         e.target.value = ''; // Reset input
         
@@ -167,10 +172,25 @@ const LaporanPage = () => {
       
       const fileUrl = await handleFileUpload(file, type);
       if (fileUrl) {
+        const fileTypeName = type === 'pdf' ? 'PDF' : 'PowerPoint';
+        
         setFormData(prev => ({
           ...prev,
           [`file${type.charAt(0).toUpperCase() + type.slice(1)}`]: fileUrl
         }));
+        
+        // Show success notification
+        setNotification({
+          type: 'success',
+          title: `File ${fileTypeName} Berhasil Diupload!`,
+          message: `${file.name} (${fileSizeMB} MB) berhasil diproses dan siap digunakan.`,
+          show: true
+        });
+        
+        // Auto hide success notification after 3 seconds
+        setTimeout(() => {
+          setNotification(null);
+        }, 3000);
       }
     }
   };
