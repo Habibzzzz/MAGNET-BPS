@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { app } from '@/app/firebase/config';
 
 export async function POST(request) {
   try {
@@ -39,40 +38,40 @@ export async function POST(request) {
       );
     }
     
-    // Validasi ukuran file (max 50MB)
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    // Validasi ukuran file (max 100MB for Firebase Storage)
+    const maxSize = 100 * 1024 * 1024; // 100MB
     if (file.size > maxSize) {
       return NextResponse.json(
-        { success: false, message: 'File size too large. Maximum 50MB' },
+        { success: false, message: 'File size too large. Maximum 100MB' },
         { status: 400 }
       );
     }
     
+    // Upload ke Firebase Storage
+    const storage = getStorage(app);
+    const timestamp = Date.now();
+    const fileExtension = file.name.split('.').pop();
+    const safeFileName = `${userId}_${timestamp}.${fileExtension}`;
+    const storageRef = ref(storage, `laporan/${type}/${safeFileName}`);
+    
+    // Convert file to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     
-    // Buat nama file unik
-    const timestamp = Date.now();
-    const fileExtension = path.extname(file.name);
-    const safeFileName = `${userId}_${timestamp}${fileExtension}`;
+    // Upload file
+    console.log(`📤 Uploading ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB) to Firebase Storage...`);
+    const snapshot = await uploadBytes(storageRef, buffer, {
+      contentType: file.type,
+    });
     
-    // Buat direktori jika belum ada
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'laporan');
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
-    
-    // Simpan file
-    const filePath = path.join(uploadDir, safeFileName);
-    await writeFile(filePath, buffer);
-    
-    // Return URL file
-    const fileUrl = `/uploads/laporan/${safeFileName}`;
+    // Get download URL
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    console.log(`✅ Upload successful: ${downloadURL}`);
     
     return NextResponse.json({
       success: true,
-      message: 'File uploaded successfully',
-      fileUrl,
+      message: 'File uploaded successfully to Firebase Storage',
+      fileUrl: downloadURL,
       fileName: file.name,
       fileSize: file.size
     });
