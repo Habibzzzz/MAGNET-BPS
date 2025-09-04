@@ -13,15 +13,33 @@ export async function POST(request) {
     let jam, menit, waktuResponse, waktuData, waktu;
 
     try {
-      waktuResponse = await fetch("http://worldtimeapi.org/api/timezone/Asia/Jakarta");
+      // Use HTTPS instead of HTTP for Vercel
+      waktuResponse = await fetch("https://worldtimeapi.org/api/timezone/Asia/Jakarta", {
+        timeout: 5000,
+        headers: {
+          'User-Agent': 'MAGNET-BPS/1.0'
+        }
+      });
+      
+      if (!waktuResponse.ok) {
+        throw new Error(`Time API failed: ${waktuResponse.status}`);
+      }
+      
       waktuData = await waktuResponse.json();
       waktu = new Date(waktuData.datetime);
       jam = waktu.getHours();
       menit = waktu.getMinutes();
+      
+      console.log(`User mengisi di waktu yang diperbolehkan, yaitu pada jam ${jam}`);
     } catch (error) {
-      waktuData = new Date();
-      jam = waktuData.getHours();
-      menit = waktuData.getMinutes();
+      console.error("WorldTime API error, using server time:", error);
+      // Fallback to server time with Jakarta timezone
+      waktu = new Date();
+      // Convert to Jakarta time (UTC+7)
+      const jakartaTime = new Date(waktu.getTime() + (7 * 60 * 60 * 1000));
+      jam = jakartaTime.getHours();
+      menit = jakartaTime.getMinutes();
+      console.log(`Fallback: User mengisi di waktu server, yaitu pada jam ${jam}`);
     }
 
     // Validasi waktu dan set keterangan absen berdasarkan jam
@@ -60,6 +78,7 @@ export async function POST(request) {
 
     // Validasi data
     if (!userId || !longCordinate || !latCordinate || !dailyNote) {
+      console.error("Validation failed - missing data:", { userId: !!userId, longCordinate: !!longCordinate, latCordinate: !!latCordinate, dailyNote: !!dailyNote });
       return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
     }
 
@@ -143,8 +162,10 @@ export async function POST(request) {
 
   } catch (error) {
     console.error("Error menyimpan absensi:", error);
+    console.error("Error stack:", error.stack);
     return NextResponse.json({ 
-      error: "Terjadi kesalahan saat menyimpan absensi" 
+      error: "Terjadi kesalahan saat menyimpan absensi",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     }, { status: 500 });
   }
 }
