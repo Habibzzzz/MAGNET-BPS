@@ -181,6 +181,7 @@ export async function PUT(request) {
     
     const decodedToken = await getAuth().verifyIdToken(token);
     const userId = decodedToken.uid;
+    const userRole = decodedToken.claims?.role || 'peserta';
     
     const body = await request.json();
     const { id, jenis, judul, deskripsi, tanggal, filePdf, filePpt, isPublic } = body;
@@ -192,12 +193,20 @@ export async function PUT(request) {
       );
     }
     
-    // Cek apakah laporan milik user
-    const laporan = await LaporanInfo.findOne({ _id: id, userId });
+    // Cek apakah laporan ada
+    const laporan = await LaporanInfo.findById(id);
     if (!laporan) {
       return NextResponse.json(
-        { success: false, message: 'Laporan not found or unauthorized' },
+        { success: false, message: 'Laporan not found' },
         { status: 404 }
+      );
+    }
+    
+    // Cek permission: admin bisa edit semua, user hanya bisa edit miliknya sendiri
+    if (userRole !== 'admin' && laporan.userId !== userId) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized to edit this laporan' },
+        { status: 403 }
       );
     }
     
@@ -243,6 +252,7 @@ export async function DELETE(request) {
     
     const decodedToken = await getAuth().verifyIdToken(token);
     const userId = decodedToken.uid;
+    const userRole = decodedToken.claims?.role || 'peserta';
     
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
@@ -254,12 +264,20 @@ export async function DELETE(request) {
       );
     }
     
-    // Cek apakah laporan milik user
-    const laporan = await LaporanInfo.findOne({ _id: id, userId });
+    // Cek apakah laporan ada
+    const laporan = await LaporanInfo.findById(id);
     if (!laporan) {
       return NextResponse.json(
-        { success: false, message: 'Laporan not found or unauthorized' },
+        { success: false, message: 'Laporan not found' },
         { status: 404 }
+      );
+    }
+    
+    // Cek permission: admin bisa hapus semua, user hanya bisa hapus miliknya sendiri
+    if (userRole !== 'admin' && laporan.userId !== userId) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized to delete this laporan' },
+        { status: 403 }
       );
     }
     

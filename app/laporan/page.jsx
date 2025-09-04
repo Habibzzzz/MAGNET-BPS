@@ -380,6 +380,7 @@ const LaporanPage = () => {
                 key={item._id}
                 laporan={item}
                 currentUser={user}
+                userRole={userRole}
                 onLike={handleLike}
                 onComment={handleComment}
                 onEdit={openEditModal}
@@ -420,10 +421,11 @@ const LaporanPage = () => {
 };
 
 // Komponen LaporanCard
-const LaporanCard = ({ laporan, currentUser, onLike, onComment, onEdit, onDelete }) => {
+const LaporanCard = ({ laporan, currentUser, userRole, onLike, onComment, onEdit, onDelete }) => {
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [commentText, setCommentText] = useState('');
   const isOwner = laporan.userId === currentUser.uid;
+  const canEditDelete = isOwner || userRole === 'admin'; // Admin bisa edit/delete semua, user hanya miliknya sendiri
   const isLiked = laporan.likes?.some(like => like.userId === currentUser.uid);
 
   const formatDate = (date) => {
@@ -457,17 +459,19 @@ const LaporanCard = ({ laporan, currentUser, onLike, onComment, onEdit, onDelete
           <h3 className="text-lg font-bold text-gray-900 mt-3 mb-2 break-words">{laporan.judul}</h3>
         </div>
         
-        {isOwner && (
+        {canEditDelete && (
           <div className="flex gap-2 ml-4">
             <button
               onClick={() => onEdit(laporan)}
               className="text-blue-500 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+              title={isOwner ? "Edit laporan Anda" : "Edit laporan (Admin)"}
             >
               <FaEdit className="w-4 h-4" />
             </button>
             <button
               onClick={() => onDelete(laporan._id)}
               className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
+              title={isOwner ? "Hapus laporan Anda" : "Hapus laporan (Admin)"}
             >
               <FaTrash className="w-4 h-4" />
             </button>
