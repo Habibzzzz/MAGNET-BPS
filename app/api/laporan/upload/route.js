@@ -39,11 +39,11 @@ export async function POST(request) {
       );
     }
     
-    // Validasi ukuran file (max 10MB untuk local storage)
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    // Validasi ukuran file (max 5MB untuk base64 storage)
+    const maxSize = 5 * 1024 * 1024; // 5MB (reduced for base64 efficiency)
     if (file.size > maxSize) {
       return NextResponse.json(
-        { success: false, message: 'File size too large. Maximum 10MB' },
+        { success: false, message: 'File size too large. Maximum 5MB for Vercel compatibility' },
         { status: 400 }
       );
     }
@@ -51,32 +51,22 @@ export async function POST(request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     
-    // Buat nama file unik
-    const timestamp = Date.now();
-    const fileExtension = path.extname(file.name);
-    const safeFileName = `${userId}_${timestamp}${fileExtension}`;
+    console.log(`📤 Processing file: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
     
-    // Buat direktori jika belum ada
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'laporan');
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
+    // Generate base64 data URL for storage (Vercel-compatible)
+    const base64 = buffer.toString('base64');
+    const mimeType = file.type || (type === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+    const dataUrl = `data:${mimeType};base64,${base64}`;
     
-    // Simpan file
-    const filePath = path.join(uploadDir, safeFileName);
-    await writeFile(filePath, buffer);
-    
-    console.log(`✅ File uploaded successfully: ${safeFileName} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
-    
-    // Return URL file
-    const fileUrl = `/uploads/laporan/${safeFileName}`;
+    console.log(`✅ Generated base64 data URL (${(dataUrl.length / 1024).toFixed(0)}KB)`);
     
     return NextResponse.json({
       success: true,
-      message: 'File uploaded successfully',
-      fileUrl,
+      message: 'File processed successfully (stored as base64)',
+      fileUrl: dataUrl,
       fileName: file.name,
-      fileSize: file.size
+      fileSize: file.size,
+      storageType: 'base64'
     });
     
   } catch (error) {
