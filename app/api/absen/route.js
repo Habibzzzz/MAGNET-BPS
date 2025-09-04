@@ -36,15 +36,33 @@ export async function POST(request) {
       console.log(`User mengisi di waktu yang diperbolehkan, yaitu pada jam ${jam}`);
     } catch (error) {
       console.error("WorldTime API error, using server time:", error);
-      // Fallback to server time with Jakarta timezone
-      waktu = new Date();
-      // Convert to Jakarta time (UTC+7)
-      const jakartaTime = new Date(waktu.getTime() + (7 * 60 * 60 * 1000));
-      jam = jakartaTime.getHours();
-      menit = jakartaTime.getMinutes();
-      console.log(`Fallback: User mengisi di waktu server, yaitu pada jam ${jam}`);
+      // Fallback to server time with proper Jakarta timezone
+      const now = new Date();
+      
+      // Use Intl.DateTimeFormat for proper timezone conversion
+      const jakartaTime = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Jakarta',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).formatToParts(now);
+      
+      const hour = parseInt(jakartaTime.find(part => part.type === 'hour').value);
+      const minute = parseInt(jakartaTime.find(part => part.type === 'minute').value);
+      
+      jam = hour;
+      menit = minute;
+      waktu = now;
+      
+      console.log(`Fallback: Jakarta time - ${hour}:${minute} (Server UTC: ${now.getHours()}:${now.getMinutes()})`);
     }
 
+    // Debug timezone info
+    console.log(`🕐 Time validation: Jakarta=${jam}:${menit}, Server UTC=${new Date().getHours()}:${new Date().getMinutes()}`);
+    
     // Validasi waktu dan set keterangan absen berdasarkan jam
     let jenisAbsen = "";
     
@@ -104,7 +122,7 @@ export async function POST(request) {
     }
 
     // Cek apakah sudah ada absen hari ini
-    const today = new Date(waktuData);
+    const today = new Date(waktu);
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -129,7 +147,7 @@ export async function POST(request) {
       // Buat absen datang baru
       absensi = new DaftarHadir({
         idUser: userId,
-        absenDate: waktuData,
+        absenDate: waktu,
         longCordinate: parseFloat(longCordinate),
         latCordinate: parseFloat(latCordinate),
         messageText: dailyNote,
@@ -144,8 +162,8 @@ export async function POST(request) {
         // Jika belum ada absen datang, buat absen baru dengan status pulang
         absensi = new DaftarHadir({
           idUser: userId,
-          absenDate: waktuData,
-          checkoutTime: waktuData, // Langsung set checkout time
+          absenDate: waktu,
+          checkoutTime: waktu, // Langsung set checkout time
           longCordinate: parseFloat(longCordinate),
           latCordinate: parseFloat(latCordinate),
           checkoutLongCordinate: parseFloat(longCordinate),
@@ -163,7 +181,7 @@ export async function POST(request) {
         }, { status: 400 });
       } else {
         // Update absen yang sudah ada dengan waktu pulang
-        existingAbsen.checkoutTime = waktuData;
+        existingAbsen.checkoutTime = waktu;
         existingAbsen.checkoutLongCordinate = parseFloat(longCordinate);
         existingAbsen.checkoutLatCordinate = parseFloat(latCordinate);
         existingAbsen.checkoutMessageText = dailyNote;
