@@ -8,7 +8,10 @@ import Intern from "@/models/internInfo";
 export async function POST(request) {
   try {
     // Ambil data dari request
-    const { userId, nama, longCordinate, latCordinate, dailyNote } = await request.json();
+    const body = await request.json();
+    console.log("📥 Received data:", body);
+    
+    const { userId, nama, longCordinate, latCordinate, dailyNote } = body;
     let KeteranganAbsen = "";
     let jam, menit, waktuResponse, waktuData, waktu;
 
@@ -74,11 +77,29 @@ export async function POST(request) {
     }
 
     // Connect ke MongoDB
+    console.log("🔌 Connecting to MongoDB...");
     await connectMongoDB();
+    console.log("✅ MongoDB connected successfully");
 
     // Validasi data
+    console.log("🔍 Validating data...", { 
+      userId: userId ? "✅" : "❌", 
+      longCordinate: longCordinate ? "✅" : "❌", 
+      latCordinate: latCordinate ? "✅" : "❌", 
+      dailyNote: dailyNote ? "✅" : "❌" 
+    });
+    
     if (!userId || !longCordinate || !latCordinate || !dailyNote) {
-      console.error("Validation failed - missing data:", { userId: !!userId, longCordinate: !!longCordinate, latCordinate: !!latCordinate, dailyNote: !!dailyNote });
+      console.error("❌ Validation failed - missing data:", { 
+        userId: !!userId, 
+        longCordinate: !!longCordinate, 
+        latCordinate: !!latCordinate, 
+        dailyNote: !!dailyNote,
+        raw_userId: userId,
+        raw_longCordinate: longCordinate,
+        raw_latCordinate: latCordinate,
+        raw_dailyNote: dailyNote
+      });
       return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
     }
 
