@@ -20,13 +20,21 @@ export async function POST(request) {
       menit = waktu.getMinutes();
     } catch (error) {
       waktuData = new Date();
+      waktu = waktuData; //
       jam = waktuData.getHours();
       menit = waktuData.getMinutes();
     }
 
+    // Validasi waktu - pastikan jam valid
+    if (typeof jam !== 'number' || jam < 0 || jam > 23) {
+      return NextResponse.json({
+        error: "Waktu sistem tidak valid, silakan coba lagi"
+      }, { status: 400 });
+    }
+
     // Validasi waktu dan set keterangan absen berdasarkan jam
     let jenisAbsen = "";
-    
+
     if (jam < 12) {
       // Absen Datang (sebelum jam 12)
       jenisAbsen = "datang";
@@ -39,7 +47,7 @@ export async function POST(request) {
           error: "Anda mengisi absen datang di luar jam yang ditentukan (05:00-11:59)" 
         }, { status: 400 });
       }
-    } else {
+    } else if (jam >= 12) {
       // Absen Pulang (jam 12 ke atas)
       jenisAbsen = "pulang";
       if (jam >= 12 && jam < 16) {
@@ -49,8 +57,8 @@ export async function POST(request) {
       } else if (jam > 16 && jam < 23) {
         KeteranganAbsen = "Pulang Lembur";
       } else {
-        return NextResponse.json({ 
-          error: "Anda mengisi absen pulang di luar jam yang ditentukan (12:00-22:59)" 
+        return NextResponse.json({
+          error: "Anda mengisi absen pulang di luar jam yang ditentukan (12:00-22:59)"
         }, { status: 400 });
       }
     }
