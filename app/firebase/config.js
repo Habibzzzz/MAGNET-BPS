@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { initializeFirestore } from 'firebase/firestore'
+import { initializeFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -15,6 +16,7 @@ const firebaseConfig = {
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
+const storage = getStorage(app);
 
 // Fix WebChannel/network proxy issues (client offline / 400 Listen)
 export const db = initializeFirestore(app, {
@@ -22,4 +24,4 @@ export const db = initializeFirestore(app, {
 	useFetchStreams: false,
 });
 
-export { auth, app };
+export { auth, app, storage };
