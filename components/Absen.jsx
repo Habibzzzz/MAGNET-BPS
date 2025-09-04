@@ -160,6 +160,12 @@ export default function Absen() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Debug log untuk dailyNote changes
+    if (name === 'dailyNote') {
+      console.log('📝 Daily note changed:', value);
+    }
+    
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -199,12 +205,21 @@ export default function Absen() {
     }
 
     try {
+      // Sanitize dailyNote to ensure it doesn't contain console output
+      const cleanDailyNote = formData.dailyNote
+        ?.replace(/page-[a-zA-Z0-9]+\.js:\d+/g, '') // Remove webpack chunk references
+        ?.replace(/undefined\n/g, '') // Remove undefined lines
+        ?.replace(/ini bukan pembimbing\n/g, '') // Remove role check logs
+        ?.replace(/🙅‍♂️ Bukan admin\n/g, '') // Remove admin check logs
+        ?.replace(/latCordinate: [0-9.-]+/g, '') // Remove coordinate logs
+        ?.trim() || '';
+
       const dataToSubmit = {
         userId: user?.uid,
         nama: formData.nama,
         longCordinate: formData.longCordinate,
         latCordinate: formData.latCordinate,
-        dailyNote: formData.dailyNote,
+        dailyNote: cleanDailyNote,
       };
 
       // Debug logging
