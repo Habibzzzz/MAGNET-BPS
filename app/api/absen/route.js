@@ -33,7 +33,7 @@ export async function POST(request) {
       jam = waktu.getHours();
       menit = waktu.getMinutes();
       
-      console.log(`User mengisi di waktu yang diperbolehkan, yaitu pada jam ${jam}`);
+      console.log(`✅ WorldTime API success: Jakarta=${jam}:${menit}, Raw=${waktuData.datetime}`);
     } catch (error) {
       console.error("WorldTime API error, using server time:", error);
       // Fallback to server time with proper Jakarta timezone
@@ -60,8 +60,25 @@ export async function POST(request) {
       console.log(`Fallback: Jakarta time - ${hour}:${minute} (Server UTC: ${now.getHours()}:${now.getMinutes()})`);
     }
 
+    // Backup validation: jika jam terdeteksi di luar range wajar, gunakan Intl fallback
+    if (jam < 0 || jam > 23) {
+      console.warn(`⚠️  Invalid hour detected (${jam}), using Intl fallback`);
+      const now = new Date();
+      const jakartaTime = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Jakarta',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).formatToParts(now);
+      
+      jam = parseInt(jakartaTime.find(part => part.type === 'hour').value);
+      menit = parseInt(jakartaTime.find(part => part.type === 'minute').value);
+      waktu = now;
+      console.log(`🔄 Corrected to Jakarta time: ${jam}:${menit}`);
+    }
+
     // Debug timezone info
-    console.log(`🕐 Time validation: Jakarta=${jam}:${menit}, Server UTC=${new Date().getHours()}:${new Date().getMinutes()}`);
+    console.log(`🕐 Final time validation: Jakarta=${jam}:${menit}, Server UTC=${new Date().getHours()}:${new Date().getMinutes()}`);
     
     // Validasi waktu dan set keterangan absen berdasarkan jam
     let jenisAbsen = "";
@@ -69,13 +86,18 @@ export async function POST(request) {
     if (jam < 12) {
       // Absen Datang (sebelum jam 12)
       jenisAbsen = "datang";
+      console.log(`⏰ Checking datang rules: jam=${jam}, menit=${menit}`);
+      
       if ((jam >= 5 && jam < 7) || (jam === 7 && menit <= 30)) {
         KeteranganAbsen = "Datang Tepat Waktu";
+        console.log(`✅ Datang Tepat Waktu: ${jam}:${menit}`);
       } else if ((jam === 7 && menit > 30) || (jam > 7 && jam < 12)) {
         KeteranganAbsen = "Datang Terlambat";
+        console.log(`⚠️  Datang Terlambat: ${jam}:${menit}`);
       } else {
+        console.error(`❌ Invalid datang time: ${jam}:${menit} (must be 05:00-11:59)`);
         return NextResponse.json({ 
-          error: "Anda mengisi absen datang di luar jam yang ditentukan (05:00-11:59)" 
+          error: `Anda mengisi absen datang di luar jam yang ditentukan (05:00-11:59). Detected: ${jam}:${String(menit).padStart(2, '0')}` 
         }, { status: 400 });
       }
     } else {
