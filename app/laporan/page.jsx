@@ -24,6 +24,7 @@ const LaporanPage = () => {
     isPublic: true
   });
   const [uploadProgress, setUploadProgress] = useState({});
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -135,6 +136,35 @@ const LaporanPage = () => {
   const handleFileChange = async (e, type) => {
     const file = e.target.files[0];
     if (file) {
+      // Validasi ukuran file di frontend
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      const fileSizeMB = (file.size / 1024 / 1024).toFixed(2);
+      
+      if (file.size > maxSize) {
+        // Show modern notification
+        setNotification({
+          type: 'error',
+          title: 'File Terlalu Besar!',
+          message: `Ukuran file: ${fileSizeMB} MB (Maksimal: 5 MB). Silakan kompres file atau pilih file yang lebih kecil.`,
+          show: true
+        });
+        
+        // Also show alert as fallback
+        alert(`❌ File terlalu besar!\n\nUkuran file: ${fileSizeMB} MB\nMaksimal: 5 MB\n\nSilakan kompres file Anda atau pilih file yang lebih kecil.`);
+        
+        e.target.value = ''; // Reset input
+        
+        // Auto hide notification after 5 seconds
+        setTimeout(() => {
+          setNotification(null);
+        }, 5000);
+        
+        return;
+      }
+      
+      // Tampilkan konfirmasi ukuran file
+      console.log(`📁 File selected: ${file.name} (${fileSizeMB} MB)`);
+      
       const fileUrl = await handleFileUpload(file, type);
       if (fileUrl) {
         setFormData(prev => ({
@@ -264,6 +294,32 @@ const LaporanPage = () => {
         title="Laporan Magang" 
         subTitle="Kelola laporan kegiatan harian dan project akhir Anda" 
       />
+      
+      {/* Modern Notification */}
+      {notification && (
+        <div className="fixed top-20 right-4 z-50 max-w-sm">
+          <div className={`p-4 rounded-lg shadow-lg border-l-4 ${
+            notification.type === 'error' 
+              ? 'bg-red-50 border-red-500 text-red-700' 
+              : 'bg-green-50 border-green-500 text-green-700'
+          } backdrop-blur-sm animate-pulse`}>
+            <div className="flex justify-between items-start">
+              <div>
+                <h4 className="font-semibold flex items-center gap-2">
+                  {notification.type === 'error' ? '⚠️' : '✅'} {notification.title}
+                </h4>
+                <p className="text-sm mt-1">{notification.message}</p>
+              </div>
+              <button
+                onClick={() => setNotification(null)}
+                className="text-gray-400 hover:text-gray-600 ml-3 text-lg"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="md:max-w-7xl mx-auto p-2 md:p-4">
         {/* Statistics Overview */}
@@ -670,6 +726,7 @@ const LaporanModal = ({ formData, setFormData, selectedLaporan, uploadProgress, 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Upload PDF (Opsional)
+                <span className="text-xs text-gray-500 ml-2">• Maksimal 5 MB</span>
               </label>
               <input
                 type="file"
@@ -677,6 +734,7 @@ const LaporanModal = ({ formData, setFormData, selectedLaporan, uploadProgress, 
                 onChange={(e) => onFileChange(e, 'pdf')}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
               />
+              <p className="text-xs text-gray-500 mt-1">💡 Tips: Kompres PDF jika ukuran lebih dari 5 MB</p>
               {uploadProgress.pdf !== undefined && (
                 <div className="mt-2">
                   {uploadProgress.pdf === -1 ? (
@@ -699,6 +757,7 @@ const LaporanModal = ({ formData, setFormData, selectedLaporan, uploadProgress, 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Upload PPT (Opsional)
+                <span className="text-xs text-gray-500 ml-2">• Maksimal 5 MB</span>
               </label>
               <input
                 type="file"
@@ -706,6 +765,7 @@ const LaporanModal = ({ formData, setFormData, selectedLaporan, uploadProgress, 
                 onChange={(e) => onFileChange(e, 'ppt')}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
               />
+              <p className="text-xs text-gray-500 mt-1">💡 Tips: Kompres PowerPoint jika ukuran lebih dari 5 MB</p>
               {uploadProgress.ppt !== undefined && (
                 <div className="mt-2">
                   {uploadProgress.ppt === -1 ? (
