@@ -176,10 +176,17 @@ const InternCalendar = () => {
   };
 
   const getQuotaColor = (count) => {
-    if (count >= 10) return "text-red-600";
-    if (count >= 7) return "text-orange-600";
-    if (count >= 4) return "text-yellow-600";
-    return "text-green-600";
+    if (count >= 10) return "text-red-700 font-bold";
+    if (count >= 7) return "text-orange-700 font-bold";
+    if (count >= 4) return "text-yellow-700 font-bold";
+    return "text-green-700 font-bold";
+  };
+
+  const getQuotaBgColor = (count) => {
+    if (count >= 10) return "bg-gradient-to-r from-red-100 to-pink-100 border-red-300 shadow-red-200/50";
+    if (count >= 7) return "bg-gradient-to-r from-orange-100 to-amber-100 border-orange-300 shadow-orange-200/50";
+    if (count >= 4) return "bg-gradient-to-r from-yellow-100 to-lime-100 border-yellow-300 shadow-yellow-200/50";
+    return "bg-gradient-to-r from-green-100 to-emerald-100 border-green-300 shadow-green-200/50";
   };
 
   const statusPriority = {
@@ -318,9 +325,25 @@ const InternCalendar = () => {
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
-                  <h2 className="text-xl font-semibold text-gray-800 min-w-[12rem] text-center">
-                    {months[currentDate.getMonth()]} {currentDate.getFullYear()}
-                  </h2>
+                  <div className="flex flex-col items-center">
+                    <h2 className="text-xl font-semibold text-gray-800 min-w-[12rem] text-center">
+                      {months[currentDate.getMonth()]} {currentDate.getFullYear()}
+                    </h2>
+                    <div className="flex items-center space-x-3 mt-1">
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span className="text-xs text-gray-600">Banyak slot</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <span className="text-xs text-gray-600">Sedang</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                        <span className="text-xs text-gray-600">Hampir penuh</span>
+                      </div>
+                    </div>
+                  </div>
                   <button
                     onClick={() => navigateMonth(1)}
                     className="p-2 cursor-pointer rounded-xl hover:bg-gray-100 transition-all duration-200 shadow-sm hover:shadow-md"
@@ -351,9 +374,9 @@ const InternCalendar = () => {
 
           {/* Calendar Grid */}
           <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-white/30 overflow-hidden">
-            <div className="grid grid-cols-7 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+            <div className="grid grid-cols-7 bg-blue-400 border-b border-gray-200 shadow-lg">
               {daysOfWeek.map(day => (
-                <div key={day} className="p-4 text-center font-semibold text-gray-700">{day}</div>
+                <div key={day} className="p-4 text-center font-bold text-white text-sm uppercase tracking-wide shadow-inner hover:bg-white/10 transition-all duration-300">{day}</div>
               ))}
             </div>
 
@@ -368,8 +391,8 @@ const InternCalendar = () => {
                     key={index}
                     className={`min-h-32 border-b border-r border-gray-200/50 p-2 flex flex-col justify-between transition-all duration-200 ${
                       !date ? 'bg-gray-50/50'
-                        : isWeekend ? 'bg-red-50/80 hover:bg-red-100/80'
-                          : 'bg-white/80 hover:bg-white/90'
+                        : isWeekend ? 'bg-pink-100/80 hover:bg-pink-200/80'
+                          : 'bg-gray-50/60 hover:bg-gray-100/60'
                       }`}
                   >
                     {date && (
@@ -383,13 +406,13 @@ const InternCalendar = () => {
                             {isLoggedIn ? (
                               // Untuk user login: tampilkan jumlah peserta jika ada
                               internsForDate.length > 0 && (
-                                <span className={`text-xs font-semibold ${getQuotaColor(internsForDate.length)}`}>
+                                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs ${getQuotaColor(internsForDate.length)} ${getQuotaBgColor(internsForDate.length)} backdrop-blur-md border-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105`}>
                                   {internsForDate.length} peserta
                                 </span>
                               )
                             ) : (
                               // Untuk user belum login: selalu tampilkan sisa slot
-                              <span className={`text-xs font-semibold ${getQuotaColor(internsForDate.length)}`}>
+                              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getQuotaColor(internsForDate.length)} ${getQuotaBgColor(internsForDate.length)} backdrop-blur-sm border shadow-sm`}>
                                 Tersisa {Math.max(0, DAILY_QUOTA - internsForDate.length)} slot
                               </span>
                             )}

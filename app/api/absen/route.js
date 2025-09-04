@@ -8,45 +8,58 @@ import Intern from "@/models/internInfo";
 export async function POST(request) {
   try {
     // Ambil data dari request
-    const { userId, nama, longCordinate, latCordinate, dailyNote } = await request.json();
+    const body = await request.json();
+    console.log("📥 Received data:", body);
+    
+    const { userId, nama, longCordinate, latCordinate, dailyNote } = body;
     let KeteranganAbsen = "";
     let jam, menit, waktuResponse, waktuData, waktu;
 
-    try {
-      waktuResponse = await fetch("http://worldtimeapi.org/api/timezone/Asia/Jakarta");
-      waktuData = await waktuResponse.json();
-      waktu = new Date(waktuData.datetime);
-      jam = waktu.getHours();
-      menit = waktu.getMinutes();
-    } catch (error) {
-      waktuData = new Date();
-      waktu = waktuData; //
-      jam = waktuData.getHours();
-      menit = waktuData.getMinutes();
-    }
+    // Always use reliable timezone conversion instead of WorldTime API
+    const now = new Date();
+    
+    // Force Jakarta timezone using Intl.DateTimeFormat
+    const jakartaTime = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Jakarta',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).formatToParts(now);
+    
+    jam = parseInt(jakartaTime.find(part => part.type === 'hour').value);
+    menit = parseInt(jakartaTime.find(part => part.type === 'minute').value);
+    waktu = now;
+    
+    console.log(`🇮🇩 Jakarta time: ${jam}:${menit} (Server UTC: ${now.getUTCHours()}:${now.getUTCMinutes()})`);
 
-    // Validasi waktu - pastikan jam valid
-    if (typeof jam !== 'number' || jam < 0 || jam > 23) {
-      return NextResponse.json({
-        error: "Waktu sistem tidak valid, silakan coba lagi"
-      }, { status: 400 });
-    }
 
+    // Debug timezone info
+    console.log(`🕐 Final time validation: Jakarta=${jam}:${menit}, Server UTC=${new Date().getHours()}:${new Date().getMinutes()}`);
+    
     // Validasi waktu dan set keterangan absen berdasarkan jam
     let jenisAbsen = "";
 
     if (jam < 12) {
       // Absen Datang (sebelum jam 12)
       jenisAbsen = "datang";
+      console.log(`⏰ Checking datang rules: jam=${jam}, menit=${menit}`);
+      
       if ((jam >= 5 && jam < 7) || (jam === 7 && menit <= 30)) {
         KeteranganAbsen = "Datang Tepat Waktu";
+        console.log(`✅ Datang Tepat Waktu: ${jam}:${menit}`);
       } else if ((jam === 7 && menit > 30) || (jam > 7 && jam < 12)) {
         KeteranganAbsen = "Datang Terlambat";
-      } else {
-        return NextResponse.json({ 
-          error: "Anda mengisi absen datang di luar jam yang ditentukan (05:00-11:59)" 
-        }, { status: 400 });
-      }
+        console.log(`⚠️  Datang Terlambat: ${jam}:${menit}`);
+      } 
+      // else {
+      //   console.error(`❌ Invalid datang time: ${jam}:${menit} (must be 05:00-11:59)`);
+      //   return NextResponse.json({ 
+      //     error: `Anda mengisi absen datang di luar jam yang ditentukan (05:00-11:59). Detected: ${jam}:${String(menit).padStart(2, '0')}` 
+      //   }, { status: 400 });
+      // }
     } else if (jam >= 12) {
       // Absen Pulang (jam 12 ke atas)
       jenisAbsen = "pulang";
@@ -56,23 +69,43 @@ export async function POST(request) {
         KeteranganAbsen = "Pulang Tepat Waktu";
       } else if (jam > 16 && jam < 23) {
         KeteranganAbsen = "Pulang Lembur";
-      } else {
-        return NextResponse.json({
-          error: "Anda mengisi absen pulang di luar jam yang ditentukan (12:00-22:59)"
-        }, { status: 400 });
-      }
+      } 
+      // else {
+      //   return NextResponse.json({
+      //     error: "Anda mengisi absen pulang di luar jam yang ditentukan (12:00-22:59)"
+      //   }, { status: 400 });
+      // }
     }
 
     // Connect ke MongoDB
+    console.log("🔌 Connecting to MongoDB...");
     await connectMongoDB();
+    console.log("✅ MongoDB connected successfully");
 
     // Validasi data
+    console.log("🔍 Validating data...", { 
+      userId: userId ? "✅" : "❌", 
+      longCordinate: longCordinate ? "✅" : "❌", 
+      latCordinate: latCordinate ? "✅" : "❌", 
+      dailyNote: dailyNote ? "✅" : "❌" 
+    });
+    
     if (!userId || !longCordinate || !latCordinate || !dailyNote) {
+      console.error("❌ Validation failed - missing data:", { 
+        userId: !!userId, 
+        longCordinate: !!longCordinate, 
+        latCordinate: !!latCordinate, 
+        dailyNote: !!dailyNote,
+        raw_userId: userId,
+        raw_longCordinate: longCordinate,
+        raw_latCordinate: latCordinate,
+        raw_dailyNote: dailyNote
+      });
       return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
     }
 
     // Cek apakah sudah ada absen hari ini
-    const today = new Date(waktuData);
+    const today = new Date(waktu);
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -97,7 +130,7 @@ export async function POST(request) {
       // Buat absen datang baru
       absensi = new DaftarHadir({
         idUser: userId,
-        absenDate: waktuData,
+        absenDate: waktu,
         longCordinate: parseFloat(longCordinate),
         latCordinate: parseFloat(latCordinate),
         messageText: dailyNote,
@@ -112,8 +145,8 @@ export async function POST(request) {
         // Jika belum ada absen datang, buat absen baru dengan status pulang
         absensi = new DaftarHadir({
           idUser: userId,
-          absenDate: waktuData,
-          checkoutTime: waktuData, // Langsung set checkout time
+          absenDate: waktu,
+          checkoutTime: waktu, // Langsung set checkout time
           longCordinate: parseFloat(longCordinate),
           latCordinate: parseFloat(latCordinate),
           checkoutLongCordinate: parseFloat(longCordinate),
@@ -131,7 +164,7 @@ export async function POST(request) {
         }, { status: 400 });
       } else {
         // Update absen yang sudah ada dengan waktu pulang
-        existingAbsen.checkoutTime = waktuData;
+        existingAbsen.checkoutTime = waktu;
         existingAbsen.checkoutLongCordinate = parseFloat(longCordinate);
         existingAbsen.checkoutLatCordinate = parseFloat(latCordinate);
         existingAbsen.checkoutMessageText = dailyNote;
@@ -151,8 +184,10 @@ export async function POST(request) {
 
   } catch (error) {
     console.error("Error menyimpan absensi:", error);
+    console.error("Error stack:", error.stack);
     return NextResponse.json({ 
-      error: "Terjadi kesalahan saat menyimpan absensi" 
+      error: "Terjadi kesalahan saat menyimpan absensi",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     }, { status: 500 });
   }
 }

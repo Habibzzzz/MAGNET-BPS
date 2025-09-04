@@ -104,25 +104,25 @@ export default function StatusPendaftaran() {
                 {/* Summary Stats */}
                 <div className="p-6 border-b border-gray-200">
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-orange-50 rounded-lg p-4">
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                                    <Clock className="w-4 h-4 text-orange-600" />
+                                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                    <Clock className="w-4 h-4 text-green-600" />
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-bold text-orange-700">{totalPending}</p>
-                                    <p className="text-sm text-orange-600">Menunggu Persetujuan</p>
+                                    <p className="text-2xl font-bold text-green-700">{totalPending}</p>
+                                    <p className="text-sm text-green-600">Menunggu Persetujuan</p>
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-red-50 rounded-lg p-4">
+                        <div className="bg-rose-50 border border-rose-200 rounded-lg p-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                                    <X className="w-4 h-4 text-red-600" />
+                                <div className="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center">
+                                    <X className="w-4 h-4 text-rose-600" />
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-bold text-red-700">{totalDitolak}</p>
-                                    <p className="text-sm text-red-600">Ditolak</p>
+                                    <p className="text-2xl font-bold text-rose-700">{totalDitolak}</p>
+                                    <p className="text-sm text-rose-600">Ditolak</p>
                                 </div>
                             </div>
                         </div>
@@ -135,12 +135,12 @@ export default function StatusPendaftaran() {
                     {totalPending > 0 && (
                         <div className="mb-6">
                             <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-orange-500" />
+                                <Clock className="w-4 h-4 text-green-600" />
                                 Menunggu Persetujuan ({totalPending})
                             </h4>
                             <div className="space-y-3">
                                 {statusData.pending.map((intern, index) => (
-                                    <div key={index} className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                    <div key={index} className="bg-green-50 border border-green-200 rounded-lg p-4">
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-2">
@@ -162,7 +162,7 @@ export default function StatusPendaftaran() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs font-medium">
+                                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
                                                 Pending
                                             </span>
                                         </div>
@@ -176,12 +176,12 @@ export default function StatusPendaftaran() {
                     {totalDitolak > 0 && (
                         <div>
                             <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                <X className="w-4 h-4 text-red-500" />
+                                <X className="w-4 h-4 text-rose-600" />
                                 Ditolak ({totalDitolak})
                             </h4>
                             <div className="space-y-3">
                                 {statusData.ditolak.map((intern, index) => (
-                                    <div key={index} className="bg-red-50 border border-red-200 rounded-lg p-4">
+                                    <div key={index} className="bg-rose-50 border border-rose-200 rounded-lg p-4">
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-2">
@@ -203,7 +203,7 @@ export default function StatusPendaftaran() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
+                                            <span className="bg-rose-100 text-rose-700 px-2 py-1 rounded-full text-xs font-medium">
                                                 Ditolak
                                             </span>
                                         </div>
@@ -220,13 +220,15 @@ export default function StatusPendaftaran() {
     return (
         <>
             {/* Trigger Button */}
-            <button
-                onClick={handleOpenModal}
-                className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-                <FileSearch className="w-4 h-4" />
-                Cek Status Pendaftaran
-            </button>
+            <div className="text-center">
+                <button
+                    onClick={handleOpenModal}
+                    className="mt-2 px-4 py-2 bg-yellow-100 text-yellow-700 font-semibold hover:bg-yellow-200 cursor-pointer rounded-lg transition-colors flex items-center justify-center gap-2 mx-auto border border-yellow-300"
+                >
+                    
+                    Cek Status Pendaftaran
+                </button>
+            </div>
 
             {/* Modal */}
             {isModalOpen && (

@@ -486,14 +486,14 @@ export default function Login() {
                                         Daftar Sebagai Pembimbing
                                     </button>
                                     <button
-                                        className="mt-2 text-blue-600 font-semibold hover:text-blue-700 cursor-pointer"
+                                        className=" mt-2 px-4 py-2 bg-green-100 text-green-700 font-semibold hover:bg-green-200 cursor-pointer rounded-lg transition-colors flex items-center justify-center gap-2 mx-auto border border-green-300"
                                         onClick={() => router.push('/kalender')}
                                     >
-                                        Lihat Kalender
+                                        Jadwal & Kuota Magang
                                     </button>
                                     
                                     {/* Status Pendaftaran Section */}
-                                    <div className="mt-6">
+                                    <div className="mt-2">
                                         <StatusPendaftaran />
                                     </div>
                                 </>
