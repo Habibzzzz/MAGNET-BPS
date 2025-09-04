@@ -15,67 +15,26 @@ export async function POST(request) {
     let KeteranganAbsen = "";
     let jam, menit, waktuResponse, waktuData, waktu;
 
-    try {
-      // Use HTTPS instead of HTTP for Vercel
-      waktuResponse = await fetch("https://worldtimeapi.org/api/timezone/Asia/Jakarta", {
-        timeout: 5000,
-        headers: {
-          'User-Agent': 'MAGNET-BPS/1.0'
-        }
-      });
-      
-      if (!waktuResponse.ok) {
-        throw new Error(`Time API failed: ${waktuResponse.status}`);
-      }
-      
-      waktuData = await waktuResponse.json();
-      waktu = new Date(waktuData.datetime);
-      jam = waktu.getHours();
-      menit = waktu.getMinutes();
-      
-      console.log(`✅ WorldTime API success: Jakarta=${jam}:${menit}, Raw=${waktuData.datetime}`);
-    } catch (error) {
-      console.error("WorldTime API error, using server time:", error);
-      // Fallback to server time with proper Jakarta timezone
-      const now = new Date();
-      
-      // Use Intl.DateTimeFormat for proper timezone conversion
-      const jakartaTime = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Jakarta',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      }).formatToParts(now);
-      
-      const hour = parseInt(jakartaTime.find(part => part.type === 'hour').value);
-      const minute = parseInt(jakartaTime.find(part => part.type === 'minute').value);
-      
-      jam = hour;
-      menit = minute;
-      waktu = now;
-      
-      console.log(`Fallback: Jakarta time - ${hour}:${minute} (Server UTC: ${now.getHours()}:${now.getMinutes()})`);
-    }
+    // Always use reliable timezone conversion instead of WorldTime API
+    const now = new Date();
+    
+    // Force Jakarta timezone using Intl.DateTimeFormat
+    const jakartaTime = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Jakarta',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).formatToParts(now);
+    
+    jam = parseInt(jakartaTime.find(part => part.type === 'hour').value);
+    menit = parseInt(jakartaTime.find(part => part.type === 'minute').value);
+    waktu = now;
+    
+    console.log(`🇮🇩 Jakarta time: ${jam}:${menit} (Server UTC: ${now.getUTCHours()}:${now.getUTCMinutes()})`);
 
-    // Backup validation: jika jam terdeteksi di luar range wajar, gunakan Intl fallback
-    if (jam < 0 || jam > 23) {
-      console.warn(`⚠️  Invalid hour detected (${jam}), using Intl fallback`);
-      const now = new Date();
-      const jakartaTime = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Jakarta',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      }).formatToParts(now);
-      
-      jam = parseInt(jakartaTime.find(part => part.type === 'hour').value);
-      menit = parseInt(jakartaTime.find(part => part.type === 'minute').value);
-      waktu = now;
-      console.log(`🔄 Corrected to Jakarta time: ${jam}:${menit}`);
-    }
 
     // Debug timezone info
     console.log(`🕐 Final time validation: Jakarta=${jam}:${menit}, Server UTC=${new Date().getHours()}:${new Date().getMinutes()}`);
